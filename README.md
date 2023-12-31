@@ -3,6 +3,8 @@ A HTTP server in C++ 98
 
 ## resources:
 
+[Recursive descent parser](https://en.wikipedia.org/wiki/Recursive_descent_parser)
+
 [Kaydooo Webserv_42](https://github.com/Kaydooo/Webserv_42)
 [http server from scratch](https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa)
 
