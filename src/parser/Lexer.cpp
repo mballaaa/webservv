@@ -103,7 +103,7 @@ void Lexer::location( void )
 	expect(CCB) ;
 }
 
-void Lexer::checkSyntax( const std::string& configPath )
+Lexer::tokens_t Lexer::checkSyntax( const std::string& configPath )
 {
     tokens = lexer(configPath) ;
 	it = tokens.begin() ;
@@ -118,4 +118,5 @@ void Lexer::checkSyntax( const std::string& configPath )
 			location() ;
 	}
 	expect(CCB) ;
+	return (tokens) ;
 }

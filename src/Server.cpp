@@ -144,10 +144,14 @@ std::ostream& operator<<( std::ostream& os, const Server& server )
     os << "Locations: " << std::endl ;
     Server::Locations_t locations = server.getLocations() ;
     Server::Locations_t::const_iterator it = locations.begin() ;
+    std::cout << "----------------------------" << std::endl ;
     while (it != locations.end())
     {
+        std::cout << "--------------" << std::endl ;
         os << it->first << ": " << std::endl << it->second ;
         it++ ;
+        std::cout << "--------------" << std::endl ;
     }
+    std::cout << "----------------------------" << std::endl ;
     return (os) ;
 }

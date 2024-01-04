@@ -2,6 +2,7 @@
 #define LEXER_HPP
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <list>
 #include <iomanip>
@@ -13,7 +14,7 @@ public:
     typedef std::list<std::string> tokens_t ;
     typedef tokens_t::iterator iterator_t ;
 
-    static void checkSyntax( const std::string& configPath ) ;
+    static tokens_t checkSyntax( const std::string& configPath ) ;
 
 private:
     static tokens_t tokens ;
