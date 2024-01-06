@@ -19,11 +19,20 @@ Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 	std::string token ;
 	while (ss >> token)
 	{
-		size_t scPos = token.find(';') ;
-		if (scPos != std::string::npos)
+		// ignore comments from config file
+		if (token.find('#') != std::string::npos)
 		{
-			tokens.push_back(token.substr(0, scPos)) ;
-			tokens.push_back(token.substr(scPos)) ;
+			getline(ss, token) ;
+			continue ;
+		}
+		size_t scPos = token.find(';') ; // find semicolon
+		// split by semicolon so the semicolon is a token by it self
+		if (scPos != std::string::npos && scPos)
+		{
+			std::string param(token.substr(0, scPos)) ;
+			std::string semi(token.substr(scPos)) ;
+			tokens.push_back(param) ;
+			tokens.push_back(semi) ;
 		}
 		else
 			tokens.push_back(token) ;
@@ -47,6 +56,14 @@ std::string Lexer::getSymbolName( const sym_t& s )
 		return std::string("LOCATION") ;
 	else if ( s == SEMICOLON)
 		return std::string("SEMICOLON") ;
+	else if (s == ERR_PAGE)
+		return std::string("ERR_PAGE") ;
+	else if (s == ALLOW_METHODS)
+		return std::string("ALLOW_METHODS") ;
+	else if (s == CGI_PATH)
+		return std::string("CGI_PATH") ;
+	else if (s == CGI_EXT)
+		return std::string("CGI_EXT") ;
 	return std::string("PARAM") ;
 }
 
@@ -62,6 +79,14 @@ void Lexer::nextSym( void )
 		sym = LOCATION ;
 	else if (*it == ";")
 		sym = SEMICOLON ;
+	else if (*it == "error_page")
+		sym = ERR_PAGE ;
+	else if (*it == "allow_methods")
+		sym = ALLOW_METHODS ;
+	else if (*it == "cgi_path")
+		sym = CGI_PATH ;
+	else if (*it == "cgi_ext")
+		sym = CGI_EXT ;
 	else
 		sym = PARAM ;
 	// std::cout << std::setw(10) << std::left << getSymbolName(sym) << " ";
@@ -82,14 +107,14 @@ bool	Lexer::expect( sym_t s )
 {
 	if (accept(s))
 		return (true) ;
-	throw std::runtime_error("expect: unexpected symbol " + *--it) ;
+	throw std::runtime_error("expect: unexpected symbol " + *it + " " + getSymbolName(s)) ;
 	return (false) ;
 }
 
 void Lexer::param( void )
 {
-	if (accept(PARAM))
-	while (accept(PARAM)) ;
+	expect(PARAM) ;
+	expect(PARAM) ;
 	expect(SEMICOLON) ;
 }
 
@@ -98,10 +123,51 @@ void Lexer::location( void )
 	expect(LOCATION) ;
 	expect(PARAM) ;
 	expect(OCB) ;
-	while (sym == PARAM)
-		param() ;
+	while (sym == PARAM || sym == ERR_PAGE || sym == ALLOW_METHODS || sym == CGI_PATH || sym == CGI_EXT)
+	{
+		if (sym == PARAM)
+			param() ;
+		else if (sym == ERR_PAGE)
+			errPage() ;
+		else if (sym == ALLOW_METHODS)
+			allowMethods() ;
+		else if (sym == CGI_PATH)
+			cgiPath() ;
+		else if (sym == CGI_EXT)
+			cgiExt() ;
+	}
 	expect(CCB) ;
 }
+
+void Lexer::errPage( void )
+{
+	expect(ERR_PAGE) ;
+	expect(PARAM) ;
+	expect(PARAM) ;
+	expect(SEMICOLON) ;
+}
+
+void Lexer::allowMethods( void )
+{
+	expect(ALLOW_METHODS) ;
+	while (accept(PARAM)) ;
+	expect(SEMICOLON) ;
+}
+
+void Lexer::cgiPath( void )
+{
+	expect(CGI_PATH) ;
+	while (accept(PARAM)) ;
+	expect(SEMICOLON) ;
+}
+
+void Lexer::cgiExt( void )
+{
+	expect(CGI_EXT) ;
+	while (accept(PARAM)) ;
+	expect(SEMICOLON) ;
+}
+
 
 Lexer::tokens_t Lexer::checkSyntax( const std::string& configPath )
 {

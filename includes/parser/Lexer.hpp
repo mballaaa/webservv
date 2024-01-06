@@ -10,9 +10,11 @@
 class Lexer
 {
 public:
-    typedef enum { SERVER, OCB, CCB, PARAM, LOCATION, SEMICOLON, ERROR } sym_t ;
+    typedef enum { SERVER, OCB, CCB, PARAM, LOCATION, ERR_PAGE, ALLOW_METHODS, CGI_PATH,
+    CGI_EXT, SEMICOLON, ERROR } sym_t ;
+    typedef std::string token_t ;
     typedef std::list<std::string> tokens_t ;
-    typedef tokens_t::iterator iterator_t ;
+    typedef tokens_t::const_iterator iterator_t ;
 
     static tokens_t checkSyntax( const std::string& configPath ) ;
 
@@ -26,8 +28,13 @@ private:
     static void nextSym( void ) ;
     static bool accept(sym_t s) ;
     static bool	expect( sym_t s ) ;
+
     static void param( void ) ;
     static void location( void ) ;
+    static void errPage( void ) ;
+    static void allowMethods( void ) ;
+    static void cgiPath( void ) ;
+    static void cgiExt( void ) ;
 
     Lexer( void );
     Lexer( const Lexer& rhs );

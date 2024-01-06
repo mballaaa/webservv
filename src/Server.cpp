@@ -11,16 +11,20 @@ Server::Server( void ) : _serverName(""), _port(), _root(""), _host(""), _client
 
 Server::Server( const Server& rhs )
 {
-    std::cerr << __PRETTY_FUNCTION__ << std::endl ;
+    // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
     this->_serverName = rhs._serverName ;
     this->_port = rhs._port ;
     this->_host = rhs._host ;
+    this->_root = rhs._root ;
+    this->_index = rhs._index ;
     this->_clientMaxBodySize = rhs._clientMaxBodySize ;
     this->_errorPage = rhs._errorPage ;
 
     std::map<std::string, Location>::const_iterator it = rhs._locations.begin() ;
-    while (it != rhs._locations.begin())
-        this->_locations.insert(*it) ;
+    while (rhs._locations.size() &&  it != rhs._locations.begin())
+    {
+        this->_locations.insert(*it++) ;
+    }
 }
 
 Server& Server::operator=( const Server& rhs )
@@ -29,6 +33,8 @@ Server& Server::operator=( const Server& rhs )
     this->_serverName = rhs._serverName ;
     this->_port = rhs._port ;
     this->_host = rhs._host ;
+    this->_root = rhs._root ;
+    this->_index = rhs._index ;
     this->_clientMaxBodySize = rhs._clientMaxBodySize ;
     this->_errorPage = rhs._errorPage ;
 
