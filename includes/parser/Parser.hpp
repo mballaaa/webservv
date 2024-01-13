@@ -9,32 +9,31 @@
 #include <iomanip>
 #include <cstdlib>
 
-#include "../../includes/parser/Lexer.hpp"
-#include "../../includes/Server.hpp"
+#include "../Server.hpp"
+#include "./Lexer.hpp"
 
 class Parser
 {
 public:
     typedef std::vector<Server> servers_t ;
 
-    static servers_t createServers( const Lexer::tokens_t& tokens ) ;
-
+    static servers_t parse( const Lexer::tokens_t& tokens ) ;
 private:
     static servers_t servers ;
-    static Lexer::iterator_t token ;
-    static Lexer::iterator_t tokenEnd ;
+    static Lexer::iterator_t curr ;
+    static Lexer::iterator_t end ;
 
-    static servers_t parse( Lexer::iterator_t start ) ;
-    static void nextSym( void ) ;
-    static bool accept( Lexer::token_t sym, bool increment = true ) ;
-    static void server( Lexer::iterator_t curr ) ;
-    static void location( Lexer::iterator_t curr ) ;
-    // static bool	expect( Lexer::token_t token ) ;
+    static bool next( void ) ;
+    static bool expect( const std::string& sym ) ;
+    static bool accept( const std::string& sym ) ;
+    static Server createServer( void ) ;
+    static Location createLocation( void ) ;
 
-    Parser( void );
-    Parser( const Parser& rhs );
-    Parser& operator=( const Parser& rhs );
-    ~Parser( void );  
+    Parser( void ) ;
+    Parser( const Parser& rhs ) ;
+    Parser& operator=( const Parser& rhs ) ;
+    ~Parser( void ) ;
 };
+
 
 #endif

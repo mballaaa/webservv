@@ -3,20 +3,21 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 
 class Location
 {
 public:
 	typedef enum { GET, HEAD, POST, PUT, DELETE } Method_t;
 	typedef std::vector<Method_t> Methods_t ;
+	
 private:
-	bool						_autoIndex ;
-	std::string					_index ;
-	Methods_t					_allowedMethods ;
-	std::string					_return ;
-	std::string					_root ;
-	std::string					_cgiPath ;
-	std::string					_cgiExtention ;
+	bool			_autoIndex ;
+	std::string		_index ;
+	Methods_t		_allowedMethods ;
+	std::string		_return ;
+	std::string		_root ;
+	bool			_cgi ;
 public:
 	Location( void ) ;
 	Location( const Location& rhs ) ;
@@ -29,17 +30,16 @@ public:
 	const Methods_t&			getAllowedMethods( void ) const ;
 	const std::string&			getReturn( void ) const ;
 	const std::string&			getRoot( void ) const ;
-	const std::string&			getCgiPath( void ) const ;
-	const std::string&			getCgiExtention( void ) const ;
+	const bool&					getCgi( void ) const ;
 
 	// Setters
-	void 						setAutoIndex( const bool& _autoIndex ) ;
+	void 						setAutoIndex( const std::string& _autoIndex ) ;
 	void 						setIndex( const std::string& _index ) ;
 	void 						setAllowedMethods( const Methods_t	& _allowedMethods ) ;
 	void 						setReturn( const std::string& _return ) ;
 	void 						setRoot( const std::string& _root ) ;
-	void 						setCgiPath( const std::string& _cgiPath ) ;
-	void 						setCgiExtention( const std::string& _cgiExtention ) ;
+	void 						setCgi( const std::string& state ) ;
+
 } ;
 
 std::ostream& operator<<( std::ostream& os, const Location& location ) ;

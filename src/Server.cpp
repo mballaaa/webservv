@@ -1,6 +1,6 @@
 #include "../includes/Server.hpp"
 
-Server::Server( void ) : _serverName(""), _port(), _root(""), _host(""), _clientMaxBodySize(), _errorPage("")
+Server::Server( void ) : _serverNames(), _port(), _root(""), _host(""), _clientMaxBodySize(), _errorPages()
 {
     // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
     // this->_locations.insert(std::make_pair(
@@ -12,36 +12,49 @@ Server::Server( void ) : _serverName(""), _port(), _root(""), _host(""), _client
 Server::Server( const Server& rhs )
 {
     // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
-    this->_serverName = rhs._serverName ;
+    serverNames_t::const_iterator itS = rhs._serverNames.begin() ;
+    while (itS != rhs._serverNames.end())
+        this->_serverNames.push_back(*itS++) ;
+    
     this->_port = rhs._port ;
     this->_host = rhs._host ;
     this->_root = rhs._root ;
     this->_index = rhs._index ;
     this->_clientMaxBodySize = rhs._clientMaxBodySize ;
-    this->_errorPage = rhs._errorPage ;
 
-    std::map<std::string, Location>::const_iterator it = rhs._locations.begin() ;
-    while (rhs._locations.size() &&  it != rhs._locations.begin())
-    {
-        this->_locations.insert(*it++) ;
-    }
+    errorPages_t::const_iterator itE = rhs._errorPages.begin() ;
+    while (rhs._errorPages.size() &&  itE != rhs._errorPages.end())
+        this->_errorPages.insert(*itE++) ;
+
+    std::map<std::string, Location>::const_iterator itD = rhs._locations.begin() ;
+    while (rhs._locations.size() &&  itD != rhs._locations.end())
+        this->_locations.insert(*itD++) ;
 }
 
 Server& Server::operator=( const Server& rhs )
 {
     std::cerr << __PRETTY_FUNCTION__ << std::endl ;
-    this->_serverName = rhs._serverName ;
+    
+    serverNames_t::const_iterator itS = rhs._serverNames.begin() ;
+    this->_serverNames.clear() ;
+    while (itS != rhs._serverNames.end())
+        this->_serverNames.push_back(*itS++) ;
+
     this->_port = rhs._port ;
     this->_host = rhs._host ;
     this->_root = rhs._root ;
     this->_index = rhs._index ;
     this->_clientMaxBodySize = rhs._clientMaxBodySize ;
-    this->_errorPage = rhs._errorPage ;
 
-    std::map<std::string, Location>::const_iterator it = rhs._locations.begin() ;
+    errorPages_t::const_iterator itE = rhs._errorPages.begin() ;
+    this->_errorPages.clear() ;
+    while (rhs._errorPages.size() &&  itE != rhs._errorPages.end())
+        this->_errorPages.insert(*itE++) ;
+
+    Locations_t::const_iterator itD = rhs._locations.begin() ;
     this->_locations.clear() ;
-    while (it != rhs._locations.begin())
-        this->_locations.insert(*it) ;
+    while (itD != rhs._locations.end())
+        this->_locations.insert(*itD++) ;
     return (*this) ;
 }
 
@@ -50,9 +63,9 @@ Server::~Server( void )
     // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
 }
 
-const std::string&						Server::getServerName ( void ) const
+const Server::serverNames_t&						Server::getServerNames ( void ) const
 {
-    return (_serverName) ;
+    return (_serverNames) ;
 }
 
 const std::string&						Server::getIndex ( void ) const
@@ -80,9 +93,9 @@ const size_t&							Server::getClientMaxBodySize ( void ) const
     return (_clientMaxBodySize) ;
 }
 
-const std::string&						Server::getErrorPage ( void ) const
+const Server::errorPages_t&				Server::getErrorPages ( void ) const
 {
-    return (_errorPage) ;
+    return (_errorPages) ;
 }
 
 const std::map<std::string, Location>&	Server::getLocations ( void ) const
@@ -90,9 +103,12 @@ const std::map<std::string, Location>&	Server::getLocations ( void ) const
     return (_locations) ;
 }
 
-void 							Server::setServerName( const std::string& _serverName )
+void 							Server::setServerNames( const Server::serverNames_t& _serverNames )
 {
-    this->_serverName = _serverName ;
+    serverNames_t::const_iterator itS = _serverNames.begin() ;
+    this->_serverNames.clear() ;
+    while (itS !=_serverNames.end())
+        this->_serverNames.push_back(*itS++) ;
 }
 
 void 							Server::setIndex( const std::string& _index )
@@ -120,9 +136,12 @@ void 							Server::setClientMaxBodySize( const size_t& _clientMaxBodySize )
     this->_clientMaxBodySize = _clientMaxBodySize ;
 }
 
-void 							Server::setErrorPage( const std::string& _errorPage )
+void 							Server::setErrorPages( const Server::errorPages_t& _errorPages )
 {
-    this->_errorPage = _errorPage ;
+    errorPages_t::const_iterator itE = _errorPages.begin() ;
+    this->_errorPages.clear() ;
+    while (_errorPages.size() &&  itE != _errorPages.end())
+        this->_errorPages.insert(*itE++) ;
 }
 
 void 							Server::setLocations( const Locations_t& _locations )
@@ -132,20 +151,55 @@ void 							Server::setLocations( const Locations_t& _locations )
 
 void 							Server::appendLocation( const std::string& path, const Location& _location )
 {
+    if (path.empty())
+        throw std::runtime_error("empty path in location") ;
     this->_locations[path] = _location ;
+}
+
+void 							Server::appendErrorPage( const int& statusCode, const std::string& errorPagePath )
+{
+    if (errorPagePath.empty())
+        throw std::runtime_error("expected error page path") ;
+    this->_errorPages[statusCode] = errorPagePath ;
+}
+
+void 							Server::appendServerName( const std::string& serverName )
+{
+    if (serverName.empty())
+        throw std::runtime_error("expected server name") ;
+    this->_serverNames.push_back(serverName) ;
 }
 
 
 
 std::ostream& operator<<( std::ostream& os, const Server& server )
 {
-    os << "Server Name: " << server.getServerName() << std::endl ;
+    os << "Server Names: " ;
+    Server::serverNames_t serverNames = server.getServerNames() ;
+    Server::serverNames_t::const_iterator itS = serverNames.begin() ;
+    while (itS != serverNames.end())
+    {
+        os << *itS << " " ;
+        itS++ ;
+    }
+    std::cout << std::endl ;
+
     os << "Index: " << server.getIndex() << std::endl ;
     os << "Port: " << server.getPort() << std::endl ;
     os << "Root: " << server.getRoot() << std::endl ;
     os << "Host: " << server.getHost() << std::endl ;
     os << "Client Max Body Size: " << server.getClientMaxBodySize() << std::endl ;
-    os << "Error Page: " << server.getErrorPage() << std::endl ;
+
+    os << "Error Pages: " << std::endl ;
+    Server::errorPages_t errorPages = server.getErrorPages() ;
+    Server::errorPages_t::const_iterator itE = errorPages.begin() ;
+    std::cout << "----------------------------" << std::endl ;
+    while (itE != errorPages.end())
+    {
+        os << itE->first << ": " << itE->second << std::endl ;
+        itE++ ;
+    }
+    std::cout << "----------------------------" << std::endl ;
 
     os << "Locations: " << std::endl ;
     Server::Locations_t locations = server.getLocations() ;

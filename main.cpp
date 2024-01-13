@@ -1,8 +1,8 @@
 #include "includes/Location.hpp"
 #include "includes/Server.hpp"
 #include "includes/Error.hpp"
-#include "includes/parser/Lexer.hpp"
 #include "includes/parser/Parser.hpp"
+#include "includes/parser/Lexer.hpp"
 
 #include <cstdlib>
 #include <algorithm>
@@ -21,12 +21,11 @@ int main( int argc, char **argv )
 	}
 
 	Lexer::tokens_t tokens ;
-	std::vector<Server> servers ;
 	try
 	{
 		tokens = Lexer::checkSyntax(argv[1]) ;
-		Parser::servers_t t = Parser::createServers(tokens) ;
-		std::for_each(t.begin(), t.end(), print) ;
+		Parser::servers_t servers = Parser::parse(tokens) ;
+		std::for_each(servers.begin(), servers.end(), print) ;
 	}
 	catch (std::exception& e)
 	{

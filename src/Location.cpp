@@ -1,6 +1,6 @@
 #include "../includes/Location.hpp"
 
-Location::Location( void ) : _autoIndex(false), _index(""), _allowedMethods(), _return(), _root(""), _cgiPath(), _cgiExtention() 
+Location::Location( void ) : _autoIndex(false), _index(""), _allowedMethods(), _return(), _root(""), _cgi(false)
 {
 }
 
@@ -11,8 +11,7 @@ Location::Location( const Location& rhs )
     this->_allowedMethods = rhs._allowedMethods ;
     this->_return = rhs._return ;
     this->_root = rhs._root ;
-    this->_cgiPath = rhs._cgiPath ;
-    this->_cgiExtention = rhs._cgiExtention ;
+    this->_cgi = rhs._cgi ;
 }
 
 Location& Location::operator=( const Location& rhs )
@@ -22,8 +21,8 @@ Location& Location::operator=( const Location& rhs )
     this->_allowedMethods = rhs._allowedMethods ;
     this->_return = rhs._return ;
     this->_root = rhs._root ;
-    this->_cgiPath = rhs._cgiPath ;
-    this->_cgiExtention = rhs._cgiExtention ;
+    this->_cgi = rhs._cgi ;
+
     return (*this) ;
 }
 
@@ -58,19 +57,19 @@ const std::string&				Location::getRoot( void ) const
     return (_root) ;
 }
 
-const std::string&				Location::getCgiPath( void ) const
+const bool&                   Location::getCgi( void ) const
 {
-    return (_cgiPath) ;
+    return (_cgi ) ;
 }
 
-const std::string&				Location::getCgiExtention( void ) const
+void 						Location::setAutoIndex( const std::string& _autoIndex )
 {
-    return (_cgiExtention) ;
-}
-
-void 						Location::setAutoIndex( const bool& _autoIndex )
-{
-    this->_autoIndex = _autoIndex ;
+    if (_autoIndex == "on")
+        this->_autoIndex = true ;
+    else if (_autoIndex == "off")
+        this->_autoIndex = false ;
+    else
+        throw std::runtime_error("Unexpected value for autoindex: " + _autoIndex) ;
 }
 
 void 						Location::setIndex( const std::string& _index )
@@ -93,16 +92,15 @@ void 						Location::setRoot( const std::string& _root )
     this->_root = _root ;
 }
 
-void 						Location::setCgiPath( const std::string& _cgiPath )
+void 						Location::setCgi( const std::string& state )
 {
-    this->_cgiPath = _cgiPath ;
+    if (state == "on")
+        this->_cgi = true ;
+    else if (state == "off")
+        this->_cgi = false ;
+    else
+        throw std::runtime_error("Unexpected value for cgi: " + state) ;
 }
-
-void 						Location::setCgiExtention( const std::string& _cgiExtention )
-{
-    this->_cgiExtention = _cgiExtention ;
-}
-
 
 static const std::string getMethod( Location::Method_t method )
 {
@@ -125,19 +123,19 @@ std::ostream& operator<<( std::ostream& os, const Location& location )
     os << "Index: " << location.getIndex() << std::endl ;
     
     Location::Methods_t methods = location.getAllowedMethods() ;
-    Location::Methods_t::iterator it = methods.begin() ;
+    Location::Methods_t::iterator itMethod = methods.begin() ;
     os << "AllowedMethods: " ;
-    while (it != methods.end())
+    while (itMethod != methods.end())
     {
-        os << getMethod(*it++) ;
-        if (it != methods.end())
+        os << getMethod(*itMethod++) ;
+        if (itMethod != methods.end())
             os << ", " ;
     }
     os << std::endl ;
 
     os << "Return: " << location.getReturn() << std::endl ;
     os << "Root: " << location.getRoot() << std::endl ;
-    os << "CgiPath: " << location.getCgiPath() << std::endl ;
-    os << "CgiExtention: " << location.getCgiExtention() << std::endl ;
+    os << "cgi: " << (location.getCgi() ? "on" : "off") << std::endl ;
+
     return (os) ;
 }

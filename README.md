@@ -73,3 +73,91 @@ POLLWRBAND
 ```
 
 [epoll in 3 easy steps](https://suchprogramming.com/epoll-in-3-easy-steps/)
+
+[parse_8cpp_source](https://tgockel.github.io/nginxconfig/parse_8cpp_source.html)
+
+[directives](https://nginx.org/en/docs/http/ngx_http_core_module.html#directives)
+
+[ngx_http_mp4_module](https://nginx.org/en/docs/http/ngx_http_mp4_module.html)
+
+[ngx_http_autoindex_module](https://nginx.org/en/docs/http/ngx_http_autoindex_module.html)
+
+[ngx_http_index_module](https://nginx.org/en/docs/http/ngx_http_index_module.html)
+
+[return](https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return)
+
+[ngx_http_fastcgi_module](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html)
+
+[fastcgi_tmp_path](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_temp_path)
+
+[google_performance_tool](https://github.com/gperftools/gperftools)
+
+[location](https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
+
+[server](https://nginx.org/en/docs/http/ngx_http_core_module.html#server)
+
+[gzip](https://nginx.org/en/docs/http/ngx_http_gzip_module.html)
+
+[open_file_cache](https://nginx.org/en/docs/http/ngx_http_core_module.html#open_file_cache)
+
+[error_page](https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
+
+[single_http_https_server](https://nginx.org/en/docs/http/configuring_https_servers.html#single_http_https_server)
+
+[Resource Exhaustion Attack by SYN Flood with Valid Cookies](https://datatracker.ietf.org/doc/html/rfc7413#section-5.1)
+
+[accf_data](https://man.freebsd.org/cgi/man.cgi?accf_data)
+
+[accf_http](https://man.freebsd.org/cgi/man.cgi?accf_http)
+
+[sockets](https://man7.org/linux/man-pages/man7/socket.7.html)
+
+[client_header_timeout](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_timeout)
+
+[keepalive_requests](https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_requests)
+
+[Example nginx configuration
+](https://nginx.org/en/docs/example.html)
+[listen](https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
+
+[request_processing](https://nginx.org/en/docs/http/request_processing.html)
+
+[root](https://nginx.org/en/docs/http/ngx_http_core_module.html#root)
+
+[events](https://nginx.org/en/docs/events.html#epoll)
+
+[server_name](https://nginx.org/en/docs/http/ngx_http_core_module.html#server_name)
+
+[types](https://nginx.org/en/docs/http/ngx_http_core_module.html#types)
+
+[try_files](https://nginx.org/en/docs/http/ngx_http_core_module.html#try_files)
+
+[merge_slash](https://nginx.org/en/docs/http/ngx_http_core_module.html#merge_slashes)
+
+[ngx_http_api_module](https://nginx.org/en/docs/http/ngx_http_api_module.html)
+
+[admin-guide/web-server](https://docs.nginx.com/nginx/admin-guide/web-server/web-server/)
+
+[Request_methods](https://en.wikipedia.org/wiki/HTTP#Request_methods)
+
+[List_of_HTTP_status_codes](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+
+[http-header-line-break-style](https://stackoverflow.com/questions/5757290/http-header-line-break-style)
+
+[designs-example-nonblocking-io-select](https://www.ibm.com/docs/en/i/7.2?topic=designs-example-nonblocking-io-select)
+
+[Getting Started with CGI Programs](http://www.mnuwer.dbasedeveloper.co.uk/dlearn/web/session01.htm)
+
+[nginxconfig Documentation](https://tgockel.github.io/nginxconfig/)
+
+##### cgi
+
+[Environment variables in CGI script
+](https://www.ibm.com/docs/en/netcoolomnibus/8.1?topic=scripts-environment-variables-in-cgi-script)
+
+[Scritp_selection](https://datatracker.ietf.org/doc/html/rfc3875#section-3.2)
+
+[cgi_execution](https://datatracker.ietf.org/doc/html/rfc3875#section-3.4)
+
+[Data Length and Buffering Considerations
+](https://datatracker.ietf.org/doc/html/rfc3875#section-9.6)
