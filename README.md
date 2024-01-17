@@ -233,6 +233,7 @@ See [Figure 1](#figure-1) for the general sequence of calls to be followed for m
 Figure 1. A Typical Stream Socket Session
 
 <a id="figure-1"></a>
+
 ![figure1](image.png)
 
 ## resources:
