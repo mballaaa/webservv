@@ -119,12 +119,12 @@ static const std::string getMethod( Location::Method_t method )
 
 std::ostream& operator<<( std::ostream& os, const Location& location )
 {
-    os << "AutoIndex: " << (location.getAutoIndex() ? "on" : "off") << std::endl ;
-    os << "Index: " << location.getIndex() << std::endl ;
+    os << "\t\tAutoIndex: " << (location.getAutoIndex() ? "on" : "off") << std::endl ;
+    os << "\t\tIndex: " << location.getIndex() << std::endl ;
     
     Location::Methods_t methods = location.getAllowedMethods() ;
     Location::Methods_t::iterator itMethod = methods.begin() ;
-    os << "AllowedMethods: " ;
+    os << "\t\tAllowedMethods: " ;
     while (itMethod != methods.end())
     {
         os << getMethod(*itMethod++) ;
@@ -133,9 +133,9 @@ std::ostream& operator<<( std::ostream& os, const Location& location )
     }
     os << std::endl ;
 
-    os << "Return: " << location.getReturn() << std::endl ;
-    os << "Root: " << location.getRoot() << std::endl ;
-    os << "cgi: " << (location.getCgi() ? "on" : "off") << std::endl ;
+    os << "\t\tReturn: " << location.getReturn() << std::endl ;
+    os << "\t\tRoot: " << location.getRoot() << std::endl ;
+    os << "\t\tcgi: " << (location.getCgi() ? "on" : "off") << std::endl ;
 
     return (os) ;
 }

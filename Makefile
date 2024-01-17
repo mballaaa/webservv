@@ -4,11 +4,12 @@ NAME = webserv
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address
 
-SRC =	main.cpp				\
-		src/Location.cpp		\
-		src/Server.cpp			\
-		src/parser/Lexer.cpp	\
-		src/parser/Parser.cpp	\
+SRC =	main.cpp						\
+		src/Location.cpp				\
+		src/Server.cpp					\
+		src/Multiplex/Multiplex.cpp		\
+		src/parser/Lexer.cpp			\
+		src/parser/Parser.cpp			\
 
 OBJ = $(SRC:.cpp=.o)
 

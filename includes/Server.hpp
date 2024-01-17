@@ -1,7 +1,8 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #include <iostream>
+#include <iomanip>
 #include <map>
 #include "Location.hpp"
 
@@ -20,6 +21,8 @@ private:
 	size_t				_clientMaxBodySize ;
 	errorPages_t		_errorPages ;
 	Locations_t			_locations ;
+
+	int socketfd ;
 
 public:
 	Server( void ) ;
@@ -46,6 +49,7 @@ public:
 	void 							setClientMaxBodySize( const size_t& _clientMaxBodySize ) ;
 	void 							setErrorPages( const errorPages_t& _errorPage ) ;
 	void 							setLocations( const Locations_t& _locations ) ;
+	void 							setSocketFD( const int& fd ) ;
 
 	void 							appendLocation( const std::string& path, const Location& _location ) ;
 	void 							appendErrorPage( const int& statusCode, const std::string& errorPagePath ) ;

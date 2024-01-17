@@ -3,14 +3,15 @@
 #include "includes/Error.hpp"
 #include "includes/parser/Parser.hpp"
 #include "includes/parser/Lexer.hpp"
+#include "includes/Multiplex.hpp"
 
 #include <cstdlib>
 #include <algorithm>
 
-static void print(Server s)
-{
-	std::cout << s << std::endl ;
-}
+// static void print(Server s)
+// {
+// 	std::cout << s << std::endl ;
+// }
 
 int main( int argc, char **argv )
 {
@@ -19,18 +20,19 @@ int main( int argc, char **argv )
 		std::cerr << USAGE << std::endl ;
 		return (2) ;
 	}
-
-	Lexer::tokens_t tokens ;
-	try
-	{
-		tokens = Lexer::checkSyntax(argv[1]) ;
-		Parser::servers_t servers = Parser::parse(tokens) ;
-		std::for_each(servers.begin(), servers.end(), print) ;
-	}
-	catch (std::exception& e)
-	{
-		std::cerr << e.what() << std::endl ;
-	}
+	(void) argv ;
+	// Lexer::tokens_t tokens ;
+	// try
+	// {
+	// 	tokens = Lexer::checkSyntax(argv[1]) ;
+	// 	Parser::servers_t servers = Parser::parse(tokens) ;
+	// 	std::for_each(servers.begin(), servers.end(), print) ;
+	// }
+	// catch (std::exception& e)
+	// {
+	// 	std::cerr << e.what() << std::endl ;
+	// }
+	Multiplex::start() ;
 
 	return (0) ;
 }

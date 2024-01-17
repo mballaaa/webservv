@@ -170,10 +170,16 @@ void 							Server::appendServerName( const std::string& serverName )
     this->_serverNames.push_back(serverName) ;
 }
 
-
+void 							Server::setSocketFD( const int& fd )
+{
+    this->socketfd = fd ;
+}
 
 std::ostream& operator<<( std::ostream& os, const Server& server )
 {
+    int borderWitdh = 75 ;
+    os << std::setw(borderWitdh) << std::setfill('-') << "" << std::endl ;
+
     os << "Server Names: " ;
     Server::serverNames_t serverNames = server.getServerNames() ;
     Server::serverNames_t::const_iterator itS = serverNames.begin() ;
@@ -193,25 +199,20 @@ std::ostream& operator<<( std::ostream& os, const Server& server )
     os << "Error Pages: " << std::endl ;
     Server::errorPages_t errorPages = server.getErrorPages() ;
     Server::errorPages_t::const_iterator itE = errorPages.begin() ;
-    std::cout << "----------------------------" << std::endl ;
     while (itE != errorPages.end())
     {
-        os << itE->first << ": " << itE->second << std::endl ;
+        os << "\t" << itE->first << ": " << itE->second << std::endl ;
         itE++ ;
     }
-    std::cout << "----------------------------" << std::endl ;
 
     os << "Locations: " << std::endl ;
     Server::Locations_t locations = server.getLocations() ;
     Server::Locations_t::const_iterator it = locations.begin() ;
-    std::cout << "----------------------------" << std::endl ;
     while (it != locations.end())
     {
-        std::cout << "--------------" << std::endl ;
-        os << it->first << ": " << std::endl << it->second ;
+        os << "\t" << it->first << ": " << std::endl << it->second ;
         it++ ;
-        std::cout << "--------------" << std::endl ;
     }
-    std::cout << "----------------------------" << std::endl ;
+    os << std::setw(borderWitdh) << std::setfill('-') << "" << std::endl ;
     return (os) ;
 }
