@@ -232,7 +232,7 @@ You can use TCP sockets for both passive (server) and active (client) processes.
 See [Figure 1](#figure1) for the general sequence of calls to be followed for most socket routines using TCP, or stream sockets.
 Figure 1. A Typical Stream Socket Session
 
-![TCP Socket Session](image.png){id = figure1}
+![TCP Socket Session](image.png){#figure1}
 
 ## resources:
 
