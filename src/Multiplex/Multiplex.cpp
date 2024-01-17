@@ -35,127 +35,30 @@ void Multiplex::setup( const Server& server )
 }
 
 #define READ_SIZE 1024
-#define MAX_EVENTS 5
-
-static int
-create_and_bind (const char *port)
-{
-    struct addrinfo hints;
-    struct addrinfo *result, *rp;
-    int s, sfd;
-
-    bzero(&hints, sizeof (struct addrinfo));
-    hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
-    hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
-    hints.ai_flags = AI_PASSIVE;     /* All interfaces */
-
-    s = getaddrinfo (NULL, port, &hints, &result);
-    if (s != 0)
-    {
-        fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
-        return -1;
-    }
-
-    for (rp = result; rp != NULL; rp = rp->ai_next)
-    {
-        sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd == -1)
-            continue;
-        std::cout << "socket created successfully" << std::endl ;
-        s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
-        if (s == 0)
-        {
-            /* We managed to bind successfully! */
-            std::cout << "socket binded successfully" << std::endl ;
-            break;
-        }
-
-        close (sfd);
-    }
-
-    if (rp == NULL)
-    {
-        fprintf (stderr, "Could not bind\n");
-        return -1;
-    }
-
-    freeaddrinfo (result);
-
-    return sfd;
-}
-
-static int
-make_socket_non_blocking (int sfd)
-{
-    int flags, s;
-
-    flags = fcntl (sfd, F_GETFL, 0);
-    if (flags == -1)
-    {
-        perror ("fcntl");
-        return -1;
-    }
-
-    flags |= O_NONBLOCK;
-    s = fcntl (sfd, F_SETFL, flags);
-    if (s == -1)
-    {
-        perror ("fcntl");
-        return -1;
-    }
-    std::cout << "socket changed to non-blocking successfully" << std::endl ;
-    return 0;
-}
 
 void Multiplex::start( void )
 {
-    int sfd, s;
-    int efd;
-    struct epoll_event event;
+    int sfd, s, efd;
     struct epoll_event *events;
 
 
     // each server should have a socket
-    sfd = create_and_bind (std::string("9090").c_str());
-    if (sfd == -1)
-        abort ();
+    sfd = SocketManager::createSocket(std::string("9090").c_str());
+    SocketManager::makeSocketNonBlocking (sfd);
+    SocketManager::startListening(sfd) ;
+    efd = SocketManager::createEpoll() ;
+    
+    SocketManager::epollAddSocket(sfd) ;
 
-    s = make_socket_non_blocking (sfd);
-    if (s == -1)
-        abort ();
-
-    s = listen (sfd, SOMAXCONN);
-    if (s == -1)
-    {
-        perror ("listen");
-        abort ();
-    }
-
-    efd = epoll_create1 (0);
-    if (efd == -1)
-    {
-        perror ("epoll_create");
-        abort ();
-    }
-    std::cout << "epoll file created successfully" << std::endl ;
-    event.data.fd = sfd;
-    event.events = EPOLLIN | EPOLLET;
-    s = epoll_ctl (efd, EPOLL_CTL_ADD, sfd, &event);
-    if (s == -1)
-    {
-        perror ("epoll_ctl");
-        abort ();
-    }
-    std::cout << "epoll file added to epoll ctl successfully" << std::endl ;
     /* Buffer where events are returned */
-    events = (epoll_event*)calloc (MAX_EVENTS, sizeof event);
+    events = (epoll_event*)calloc (SOMAXCONN, sizeof(struct epoll_event));
 
     /* The event loop */
     while (1)
     {
         int n, i;
 
-        n = epoll_wait (efd, events, MAX_EVENTS, -1);
+        n = epoll_wait (efd, events, SOMAXCONN, -1);
         std::cout << n << " events ready" << std::endl ;
         for (i = 0; i < n; i++)
         {
@@ -211,18 +114,11 @@ void Multiplex::start( void )
 
                     /* Make the incoming socket non-blocking and add it to the
                         list of fds to monitor. */
-                    s = make_socket_non_blocking (infd);
+                    s = SocketManager::makeSocketNonBlocking(infd);
                     if (s == -1)
                         abort ();
 
-                    event.data.fd = infd;
-                    event.events = EPOLLIN | EPOLLET;
-                    s = epoll_ctl (efd, EPOLL_CTL_ADD, infd, &event);
-                    if (s == -1)
-                    {
-                        perror ("epoll_ctl");
-                        abort ();
-                    }
+                    SocketManager::epollAddSocket(infd) ;
                 }
                 continue;
             }

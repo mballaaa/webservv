@@ -14,7 +14,7 @@ A basic unit of information, consisting of one or more data packets, which are p
 **packet**<br>
 The unit or block of a data transaction between a computer and its network. A packet usually contains a network header, at least one high-level protocol header, and data blocks. Generally, the format of data blocks does not affect how packets are handled. Packets are the exchange medium used at the Internetwork layer to send data through the network.
 
-## What is a socket:
+## What is a socket?
 
 A `socket` can be thought of as an endpoint in a two-way communication channel. Socket routines create the communication channel, and the channel carries data between application programs either locally or over networks. Each socket open by a process — like any open file in a POSIX process — has a unique (within the process) number associated with it called a “`file descriptor`”, an integer that designates a socket and allows the application program to refer to it when needed.
 
@@ -230,11 +230,31 @@ When the connection is established, the client uses its socket to communicate wi
 You can use TCP sockets for both passive (server) and active (client) processes. Whereas some functions are necessary for both types, some are role-specific. After you make a connection, it exists until you close the socket. During the connection, data is either delivered or an error code is returned by TCP/IP.
 
 See [Figure 1](#figure-1) for the general sequence of calls to be followed for most socket routines using TCP, or stream sockets.
-Figure 1. A Typical Stream Socket Session
 
+*Figure 1. A Typical Stream Socket Session*
 <a id="figure-1"></a>
 
 ![figure1](image.png)
+
+#### Typical UDP Socket Session
+
+UDP socket processes, unlike TCP socket processes, are not clearly distinguished by server and client roles. The distinction is between connected and unconnected sockets. An unconnected socket can be used to communicate with any host; but a connected socket, because it has a dedicated destination, can send data to, and receive data from, only one host.
+
+Both connected and unconnected sockets send their data over the network without verification. Consequently, after a packet has been accepted by the UDP interface, the arrival and integrity of the packet cannot be guaranteed.
+
+See [Figure 2](#figure-2) for the general sequence of calls to be followed for most socket routines using UDP, or datagram, sockets.
+
+*Figure 2. A Typical Datagram Socket Session*
+<a id="figure-2"></a>
+
+![Alt text](image-1.png)
+
+#### Locating the Server's Port
+
+In the client/server model, the server provides a resource by listening for clients on a particular port. Such application programs as FTP, SMTP, and Telnet listen on a well-known port, a port reserved for use by a specific application program or protocol. However, for your own client/server application programs, you need a method of assigning port numbers to represent the services you intend to provide. One general method of defining services and their ports is to enter them into the ETC SERVICES file. The programmer uses the getservbyname() function to determine the port for a particular service. If the port number for a particular service changes, only the ETC SERVICES file must be modified.
+
+
+
 
 ## resources:
 

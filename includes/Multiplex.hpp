@@ -15,6 +15,8 @@
 #include <netdb.h>
 #include <fcntl.h>
 
+#include "SocketManager.hpp"
+
 class Multiplex
 {
 public:
