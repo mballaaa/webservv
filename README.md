@@ -229,10 +229,11 @@ When the connection is established, the client uses its socket to communicate wi
 
 You can use TCP sockets for both passive (server) and active (client) processes. Whereas some functions are necessary for both types, some are role-specific. After you make a connection, it exists until you close the socket. During the connection, data is either delivered or an error code is returned by TCP/IP.
 
-See [Figure 1](#figure1) for the general sequence of calls to be followed for most socket routines using TCP, or stream sockets.
+See [Figure 1](#figure-1) for the general sequence of calls to be followed for most socket routines using TCP, or stream sockets.
 Figure 1. A Typical Stream Socket Session
 
-![TCP Socket Session](image.png){#figure1}
+<a id="figure-1"></a>
+![figure1](image.png)
 
 ## resources:
 
