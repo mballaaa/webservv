@@ -73,7 +73,7 @@ const std::string&						Server::getIndex ( void ) const
     return (_index) ;
 }
 
-const size_t&							Server::getPort ( void ) const
+const std::string&						Server::getPort ( void ) const
 {
     return (_port) ;
 }
@@ -116,7 +116,7 @@ void 							Server::setIndex( const std::string& _index )
     this->_index = _index ;
 }
 
-void 							Server::setPort( const size_t& _port )
+void 							Server::setPort( const std::string& _port )
 {
     this->_port = _port ;
 }

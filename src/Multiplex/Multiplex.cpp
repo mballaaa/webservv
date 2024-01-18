@@ -12,26 +12,27 @@ void Multiplex::setServers( const servers_t& _servers )
 
 void Multiplex::setup( const Server& server )
 {
-    int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0) ;
-    if (fd < 0)
-    {
-        perror("socket failed") ;
-        throw std::runtime_error("socket() failed successfully") ;
-    }
-    std::cout << "Socket open successfully" << std::endl ;
+    (void)server ;
+    // int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0) ;
+    // if (fd < 0)
+    // {
+    //     perror("socket failed") ;
+    //     throw std::runtime_error("socket() failed successfully") ;
+    // }
+    // std::cout << "Socket open successfully" << std::endl ;
 
-    sockaddr_in sockaddr ;
-    sockaddr.sin_family = AF_INET ;
-    sockaddr.sin_addr.s_addr = INADDR_ANY ;
-    sockaddr.sin_port = htons(server.getPort()) ;
+    // sockaddr_in sockaddr ;
+    // sockaddr.sin_family = AF_INET ;
+    // sockaddr.sin_addr.s_addr = INADDR_ANY ;
+    // sockaddr.sin_port = htons(server.getPort()) ;
 
-    if (bind(fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
-    {
-        perror("bind failed") ;
-        close(fd) ;
-        throw std::runtime_error("bind() failed successfully") ;
-    }
-    std::cout << "Socket bouned successfully" << std::endl ;
+    // if (bind(fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
+    // {
+    //     perror("bind failed") ;
+    //     close(fd) ;
+    //     throw std::runtime_error("bind() failed successfully") ;
+    // }
+    // std::cout << "Socket bouned successfully" << std::endl ;
 }
 
 #define READ_SIZE 1024
@@ -39,16 +40,28 @@ void Multiplex::setup( const Server& server )
 void Multiplex::start( void )
 {
     int sfd, s, efd;
+    std::vector<int> listeningSockets ;
     struct epoll_event *events;
 
 
+    if (servers.empty())
+    {
+        throw std::runtime_error("Servers are not set") ;
+        return ;
+    }
+    servers_t::iterator servIt = servers.begin() ;
     // each server should have a socket
-    sfd = SocketManager::createSocket(std::string("9090").c_str());
-    SocketManager::makeSocketNonBlocking (sfd);
-    SocketManager::startListening(sfd) ;
     efd = SocketManager::createEpoll() ;
-    
-    SocketManager::epollAddSocket(sfd) ;
+    while (servIt != servers.end())
+    {
+        std::cout << "Listening on: " << servIt->getHost() << ":" << servIt->getPort() << "..." << std::endl ;
+        sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str()) ;
+        SocketManager::makeSocketNonBlocking (sfd);
+        SocketManager::startListening(sfd) ;
+        SocketManager::epollAddSocket(sfd) ;
+        listeningSockets.push_back(sfd) ;
+        servIt++ ;
+    }
 
     /* Buffer where events are returned */
     events = (epoll_event*)calloc (SOMAXCONN, sizeof(struct epoll_event));
@@ -56,11 +69,11 @@ void Multiplex::start( void )
     /* The event loop */
     while (1)
     {
-        int n, i;
+        int eventCount, i;
 
-        n = epoll_wait (efd, events, SOMAXCONN, -1);
-        std::cout << n << " events ready" << std::endl ;
-        for (i = 0; i < n; i++)
+        eventCount = epoll_wait (efd, events, SOMAXCONN, -1);
+        std::cout << eventCount << " events ready" << std::endl ;
+        for (i = 0; i < eventCount; i++)
         {
             if ((events[i].events & EPOLLERR) ||
                 (events[i].events & EPOLLHUP) ||
@@ -72,8 +85,7 @@ void Multiplex::start( void )
                 close (events[i].data.fd);
                 continue;
             }
-
-            else if (sfd == events[i].data.fd)
+            else if (std::find(listeningSockets.begin(), listeningSockets.end(), events[i].data.fd) != listeningSockets.end())
             {
                 /* We have a notification on the listening socket, which
                     means one or more incoming connections. */
@@ -85,7 +97,7 @@ void Multiplex::start( void )
                     char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
 
                     in_len = sizeof in_addr;
-                    infd = accept (sfd, &in_addr, &in_len);
+                    infd = accept (events[i].data.fd, &in_addr, &in_len);
                     if (infd == -1)
                     {
                         if ((errno == EAGAIN) ||
@@ -122,7 +134,7 @@ void Multiplex::start( void )
                 }
                 continue;
             }
-            else
+            else if (events[i].events & EPOLLIN)
             {
                 /* We have data on the fd waiting to be read. Read and
                     display it. We must read whatever data is available
@@ -156,6 +168,10 @@ void Multiplex::start( void )
                         break;
                     }
 
+                    std::string response("HTTP/1.1 200 OK\r\nContent-Length: 13\r\nContent-Type: text/html\r\n\r\nHello World!\n") ;
+                    s = write (events[i].data.fd, response.c_str(), response.size());
+                    if (s == -1)
+                        std::cout << "Cant write response" << std::endl ;
                     /* Write the buffer to standard output */
                     s = write (1, buf, count);
                     if (s == -1)
@@ -164,12 +180,10 @@ void Multiplex::start( void )
                         abort ();
                     }
                 }
-
                 if (done)
                 {
                     printf ("Closed connection on descriptor %d\n",
                             events[i].data.fd);
-
                     /* Closing the descriptor will make epoll remove it
                         from the set of descriptors which are monitored. */
                     close (events[i].data.fd);

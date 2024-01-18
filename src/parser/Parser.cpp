@@ -42,7 +42,7 @@ Server Parser::createServer( void )
     {
         if (accept("listen"))
         {
-            s.setPort(std::atol(curr->c_str())) ;
+            s.setPort(*curr) ;
             next() ;
             expect(";") ;
         }

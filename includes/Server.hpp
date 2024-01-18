@@ -15,7 +15,7 @@ public:
 private:
 	serverNames_t		_serverNames ;
 	std::string			_index ;
-	size_t				_port ;
+	std::string			_port ;
 	std::string			_root ;
 	std::string			_host ;
 	size_t				_clientMaxBodySize ;
@@ -33,7 +33,7 @@ public:
 	// Getters
 	const serverNames_t&			getServerNames ( void ) const ;
 	const std::string&				getIndex ( void ) const ;
-	const size_t&					getPort ( void ) const ;
+	const std::string&				getPort ( void ) const ;
 	const std::string&				getRoot ( void ) const ;
 	const std::string&				getHost ( void ) const ;
 	const size_t&					getClientMaxBodySize ( void ) const ;
@@ -43,7 +43,7 @@ public:
 	// Setters
 	void 							setServerNames( const serverNames_t& serverNames ) ;
 	void 							setIndex( const std::string& _Index ) ;
-	void 							setPort( const size_t& _port ) ;
+	void 							setPort( const std::string& _port ) ;
 	void 							setRoot( const std::string& _root ) ;
 	void 							setHost( const std::string& _host ) ;
 	void 							setClientMaxBodySize( const size_t& _clientMaxBodySize ) ;

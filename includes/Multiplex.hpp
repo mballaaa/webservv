@@ -6,16 +6,19 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstdio>
 #include <unistd.h>
-#include <string.h>
-#include "Server.hpp"
+#include <cstring>
+#include <string>
 #include <netdb.h>
 #include <fcntl.h>
+#include <vector>
+#include <algorithm>
 
 #include "SocketManager.hpp"
+#include "Server.hpp"
 
 class Multiplex
 {
