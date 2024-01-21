@@ -25,6 +25,11 @@ int SocketManager::createSocket( const char *host, const char *port, int ai_fami
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol) ;
         if (sfd == -1)
             continue ;
+        s = 1 ;
+        if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int)) < 0)
+        {
+            perror("setsockopt()") ;
+        }
         s = bind(sfd, rp->ai_addr, rp->ai_addrlen) ;
         if (s == 0)
         {
@@ -45,19 +50,10 @@ int SocketManager::createSocket( const char *host, const char *port, int ai_fami
 
 int SocketManager::makeSocketNonBlocking( int sfd )
 {
-    int flags ;
+    int s ;
 
-    flags = fcntl(sfd, F_GETFL, 0) ;
-    if (flags == -1)
-    {
-        perror("fcntl") ;
-        throw std::runtime_error("Could not get socket flags") ;
-        return -1 ;
-    }
-
-    flags |= O_NONBLOCK ;
-    flags = fcntl(sfd, F_SETFL, flags) ;
-    if (flags == -1)
+    s = fcntl(sfd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    if (s == -1)
     {
         perror("fcntl") ;
         throw std::runtime_error("Could not set socket flags") ;
@@ -92,18 +88,18 @@ int SocketManager::createEpoll()
     return epollFD ;
 }
 
-int SocketManager::epollAddSocket( int sfd )
+int SocketManager::epollCtlSocket( int sfd, int op, uint32_t _events )
 {
     int s ;
     struct epoll_event event;
 
     event.data.fd = sfd;
-    event.events = EPOLLIN | EPOLLET;
-    s = epoll_ctl (epollFD, EPOLL_CTL_ADD, sfd, &event);
+    event.events = _events ;
+    s = epoll_ctl (epollFD, op, sfd, &event);
     if (s == -1)
     {
         perror ("epoll_ctl");
-        throw std::runtime_error("Could not create epoll") ;
+        throw std::runtime_error("Could not ctl epoll") ;
         return -1 ;
     }
     return 0 ;

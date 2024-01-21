@@ -1,4 +1,5 @@
 #include "../../includes/Multiplex.hpp"
+#include "../../includes/Request/Request.hpp"
 
 Multiplex::servers_t Multiplex::servers ;
 
@@ -35,12 +36,11 @@ void Multiplex::setup( const Server& server )
     // std::cout << "Socket bouned successfully" << std::endl ;
 }
 
-#define READ_SIZE 1024
-
 void Multiplex::start( void )
 {
     int sfd, s, efd;
-    std::vector<int> listeningSockets ;
+    std::map<int, Server> listeningSockets ;
+    std::map<int, Request> requests ;
     struct epoll_event *events;
 
 
@@ -55,17 +55,24 @@ void Multiplex::start( void )
     while (servIt != servers.end())
     {
         std::cout << "Listening on: " << servIt->getHost() << ":" << servIt->getPort() << "..." << std::endl ;
-        sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str()) ;
+        sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str(), AF_INET, SOCK_STREAM, AI_PASSIVE) ;
         SocketManager::makeSocketNonBlocking (sfd);
         SocketManager::startListening(sfd) ;
-        SocketManager::epollAddSocket(sfd) ;
-        listeningSockets.push_back(sfd) ;
+        SocketManager::epollCtlSocket(sfd, EPOLL_CTL_ADD) ;
+        listeningSockets[sfd] = *servIt ;
         servIt++ ;
     }
 
     /* Buffer where events are returned */
     events = (epoll_event*)calloc (SOMAXCONN, sizeof(struct epoll_event));
 
+    std::map<int, std::string> eventName ;
+
+    eventName[EPOLLIN] = "EPOLLIN" ;
+    eventName[EPOLLET] = "EPOLLET" ;
+    eventName[EPOLLOUT] = "EPOLLOUT" ;
+    eventName[EPOLLERR] = "EPOLLERR" ;
+    eventName[EPOLLHUP] = "EPOLLHUP" ;
     /* The event loop */
     while (1)
     {
@@ -75,119 +82,159 @@ void Multiplex::start( void )
         std::cout << eventCount << " events ready" << std::endl ;
         for (i = 0; i < eventCount; i++)
         {
+            std::cout << "descriptor " << events[i].data.fd << " " ;
+            if (events[i].events & EPOLLOUT)
+                std::cout << eventName[EPOLLOUT] ;
+            if (events[i].events & EPOLLIN)
+                std::cout << eventName[EPOLLIN] ;
+            if (events[i].events & EPOLLET)
+                std::cout << eventName[EPOLLET] ;
+            if (events[i].events & EPOLLERR)
+                std::cout << eventName[EPOLLERR] ;
+            if (events[i].events & EPOLLHUP)
+                std::cout << eventName[EPOLLHUP] ;
+            std::cout << std::endl ;
+
             if ((events[i].events & EPOLLERR) ||
-                (events[i].events & EPOLLHUP) ||
-                (!(events[i].events & EPOLLIN)))
+                (events[i].events & EPOLLHUP))
             {
                 /* An error has occured on this fd, or the socket is not
                     ready for reading (why were we notified then?) */
                 fprintf (stderr, "epoll error\n");
                 close (events[i].data.fd);
+                perror("EPOLLERR | EPOLLHUP") ;
+                exit(3) ;
                 continue;
             }
-            else if (std::find(listeningSockets.begin(), listeningSockets.end(), events[i].data.fd) != listeningSockets.end())
+            else if (listeningSockets.find(events[i].data.fd) != listeningSockets.end())
             {
                 /* We have a notification on the listening socket, which
                     means one or more incoming connections. */
-                while (1)
+                struct sockaddr in_addr;
+                socklen_t in_len;
+                int infd;
+                char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+                in_len = sizeof in_addr;
+                infd = accept (events[i].data.fd, &in_addr, &in_len);
+                if (infd == -1)
                 {
-                    struct sockaddr in_addr;
-                    socklen_t in_len;
-                    int infd;
-                    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-
-                    in_len = sizeof in_addr;
-                    infd = accept (events[i].data.fd, &in_addr, &in_len);
-                    if (infd == -1)
+                    if ((errno == EAGAIN) ||
+                        (errno == EWOULDBLOCK))
                     {
-                        if ((errno == EAGAIN) ||
-                            (errno == EWOULDBLOCK))
-                        {
-                            /* We have processed all incoming
-                                connections. */
-                            break;
-                        }
-                        else
-                        {
-                            perror ("accept");
-                            break;
-                        }
+                        /* We have processed all incoming
+                            connections. */
+                        continue ;
                     }
-
-                    s = getnameinfo (&in_addr, in_len,
-                                    hbuf, sizeof hbuf,
-                                    sbuf, sizeof sbuf,
-                                    NI_NUMERICHOST | NI_NUMERICSERV);
-                    if (s == 0)
+                    else
                     {
-                        printf("Accepted connection on descriptor %d "
-                                "(host=%s, port=%s)\n", infd, hbuf, sbuf);
+                        perror ("accept");
+                        continue ;
                     }
-
-                    /* Make the incoming socket non-blocking and add it to the
-                        list of fds to monitor. */
-                    s = SocketManager::makeSocketNonBlocking(infd);
-                    if (s == -1)
-                        abort ();
-
-                    SocketManager::epollAddSocket(infd) ;
                 }
+                
+                s = getnameinfo (&in_addr, in_len,
+                                hbuf, sizeof hbuf,
+                                sbuf, sizeof sbuf,
+                                NI_NUMERICHOST | NI_NUMERICSERV);
+                if (s == 0)
+                {
+                    printf("Accepted connection on descriptor %d "
+                            "(host=%s, port=%s)\n", infd, hbuf, sbuf);
+                }
+
+                /* Make the incoming socket non-blocking and add it to the
+                    list of fds to monitor. */
+                s = SocketManager::makeSocketNonBlocking(infd);
+                if (s == -1)
+                    abort ();
+
+                SocketManager::epollCtlSocket(infd, EPOLL_CTL_ADD) ;
+                Request req(infd, listeningSockets[events[i].data.fd]) ;
+                requests.insert(std::make_pair(infd, Request(infd, listeningSockets[events[i].data.fd]))) ;
+                std::cout << "requests number: " << requests.size() << std::endl ;
+                std::cout << "last request fd: " << infd << std::endl ;
+                if (requests.find(infd) != requests.end())
+                    std::cout << "Server fd" << requests.find(infd)->second.getSocketFD() << std::endl ;
                 continue;
             }
             else if (events[i].events & EPOLLIN)
             {
-                /* We have data on the fd waiting to be read. Read and
-                    display it. We must read whatever data is available
-                    completely, as we are running in edge-triggered mode
-                    and won't get a notification again for the same
-                    data. */
-                int done = 0;
+                ssize_t count;
+                char buf[R_SIZE] = {0};
 
-                while (1)
+                count = read (events[i].data.fd, buf, sizeof(char) * R_SIZE - 1);
+                if (count == -1)
                 {
-                    ssize_t count;
-                    char buf[512];
+                    perror ("read");
+                    printf ("Closed connection on descriptor %d\n",
+                    events[i].data.fd);
 
-                    count = read (events[i].data.fd, buf, sizeof buf);
-                    if (count == -1)
-                    {
-                        /* If errno == EAGAIN, that means we have read all
-                            data. So go back to the main loop. */
-                        if (errno != EAGAIN)
-                        {
-                            perror ("read");
-                            done = 1;
-                        }
-                        break;
-                    }
-                    else if (count == 0)
-                    {
-                        /* End of file. The remote has closed the
-                            connection. */
-                        done = 1;
-                        break;
-                    }
-
-                    std::string response("HTTP/1.1 200 OK\r\nContent-Length: 13\r\nContent-Type: text/html\r\n\r\nHello World!\n") ;
-                    s = write (events[i].data.fd, response.c_str(), response.size());
-                    if (s == -1)
-                        std::cout << "Cant write response" << std::endl ;
-                    /* Write the buffer to standard output */
-                    s = write (1, buf, count);
-                    if (s == -1)
-                    {
-                        perror ("write");
-                        abort ();
-                    }
+                    /* Closing the descriptor will make epoll remove it
+                        from the set of descriptors which are monitored. */
+                    close (events[i].data.fd);
+                    requests.erase(events[i].data.fd) ;
+                    continue ;
                 }
-                if (done)
+                else if (count == 0)
+                {
+                    /* End of file. The remote has closed the
+                        connection. */
+                    printf ("Closed connection on descriptor %d by client\n",
+                    events[i].data.fd);
+
+                    /* Closing the descriptor will make epoll remove it
+                        from the set of descriptors which are monitored. */
+                    close (events[i].data.fd);
+                    requests.erase(events[i].data.fd) ;
+                    continue ;
+                }
+                requests.find(events[i].data.fd)->second.request += buf ;
+                /* Write the buffer to standard output */
+                std::cout << FOREGRN ;
+                std::cout << "============== Request ==============" << std::endl ;
+                std::cout << "==============+++++++++==============" << std::endl ;
+                s = write (1, buf, count);
+                std::cout << "==============+++++++++==============" << std::endl ;
+                std::cout << "==============+++++++++==============" << std::endl ;
+                std::cout << RESETTEXT ;
+                if (s == -1)
+                {
+                    perror ("write");
+                    throw std::runtime_error("Could not write in ") ;
+                }
+
+                /**
+                 * Set associated socket to EPOLLOUT to write reponse in the next iteration
+                */
+                if (requests.find(events[i].data.fd)->second.request.find("\r\n\r\n") != std::string::npos)
+                    SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLOUT) ;
+            }
+            else if (events[i].events & EPOLLOUT)
+            {
+                SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLIN) ;
+                std::string response("HTTP/1.1 200 OK\r\nContent-Length: 13\r\nContent-Type: text/html\r\n\r\nHello World!\n") ;
+                s = write (events[i].data.fd, response.c_str(), response.size());
+                if (s == -1)
+                    throw std::runtime_error("Cant write response") ;
+                std::cout << FOREBLU ;
+                std::cout << "============== Response ==============" << std::endl ;
+                std::cout << "==============++++++++++==============" << std::endl ;
+                write (1, response.c_str(), response.size());
+                std::cout << "==============+++++++++==============" << std::endl ;
+                std::cout << "==============+++++++++==============" << std::endl ;
+                std::cout << RESETTEXT ;
+                if (requests.find(events[i].data.fd)->second.request.find("Connection: close") != std::string::npos)
                 {
                     printf ("Closed connection on descriptor %d\n",
                             events[i].data.fd);
                     /* Closing the descriptor will make epoll remove it
                         from the set of descriptors which are monitored. */
                     close (events[i].data.fd);
+                    // requests.erase(events[i].data.fd) ;
                 }
+                requests.find(events[i].data.fd)->second.request.clear() ;
+                std::cout << "Response Sent" << std::endl ;
             }
         }
     }

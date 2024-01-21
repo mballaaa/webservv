@@ -11,6 +11,7 @@ SRC =	main.cpp						\
 		src/parser/Parser.cpp			\
 		src/Multiplex/Multiplex.cpp		\
 		src/Multiplex/SocketManager.cpp	\
+		src/Request/Request.cpp			\
 
 OBJ = $(SRC:.cpp=.o)
 

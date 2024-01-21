@@ -15,7 +15,6 @@
 class SocketManager
 {
 private:
-    static int epollFD ;
 
     SocketManager( void ) ;
     ~SocketManager( void ) ;
@@ -23,11 +22,12 @@ private:
     const SocketManager& operator=( const SocketManager& rhs ) ;
     
 public:
+    static int epollFD ;
     static int createSocket( const char *host, const char *port, int ai_family = AF_INET, int ai_socktype = SOCK_STREAM, int ai_flags = 0) ;
     static int makeSocketNonBlocking( int sfd ) ;
     static int startListening( int sfd ) ;
     static int createEpoll( void ) ;
-    static int epollAddSocket( int sfd ) ;
+    static int epollCtlSocket( int sfd, int op, uint32_t _events = EPOLLIN ) ;
 
 };
 
