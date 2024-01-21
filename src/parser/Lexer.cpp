@@ -2,6 +2,7 @@
 
 Lexer::tokens_t Lexer::tokens ;
 Lexer::iterator_t Lexer::it ;
+Lexer::iterator_t Lexer::prev ;
 Lexer::sym_t Lexer::sym = Lexer::ERROR ;
 
 Lexer::tokens_t Lexer::lexer( const std::string& configPath )
@@ -42,7 +43,7 @@ Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 
 	// std::list<std::string>::iterator it = tokens.begin() ;
 	// while (it != tokens.end())
-	// 	std::cout << *it++ << std::endl ;
+	// 	std::cout << *prev = it << std::endl ;
 	return (tokens) ;
 }
 
@@ -93,7 +94,8 @@ void Lexer::nextSym( void )
 		sym = SINGLE_P ;
 	// std::cout << std::setw(10) << std::left << getSymbolName(sym) << " ";
 	// std::cout << *it << std::endl ;
-	it++ ;
+	if (it != tokens.end())
+		prev = it++ ;
 }
 
 bool Lexer::accept(sym_t s)
@@ -109,7 +111,7 @@ bool	Lexer::expect( sym_t s )
 {
 	if (accept(s))
 		return (true) ;
-	throw std::runtime_error("expect: " + getSymbolName(s) + " unexpected symbol " + *it) ;
+	throw std::runtime_error("expect: " + getSymbolName(s) + " unexpected symbol " + *prev) ;
 	return (false) ;
 }
 
@@ -175,8 +177,8 @@ Lexer::tokens_t Lexer::checkSyntax( const std::string& configPath )
 {
     tokens = lexer(configPath) ;
 	it = tokens.begin() ;
-    nextSym() ;
-	while (accept(SERVER))
+	nextSym() ;
+	while (it != tokens.end() && expect(SERVER))
 	{
 		expect(OCB) ;
 		while (sym != CCB)
@@ -189,6 +191,7 @@ Lexer::tokens_t Lexer::checkSyntax( const std::string& configPath )
 				multipleParam() ;
 			else
 				signleParam() ;
+			
 		}
 		expect(CCB) ;
 	}

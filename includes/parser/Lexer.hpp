@@ -23,6 +23,7 @@ public:
 private:
     static tokens_t tokens ;
     static iterator_t it ;
+    static iterator_t prev ;
     static sym_t    sym ;
 
     static tokens_t lexer( const std::string& configPath ) ;
