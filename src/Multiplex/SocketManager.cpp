@@ -2,11 +2,15 @@
 
 int SocketManager::epollFD = -1 ;
 
+#include <iostream>
+
 int SocketManager::createSocket( const char *host, const char *port, int ai_family, int ai_socktype, int ai_flags)
 {
     struct addrinfo hints ;
     struct addrinfo *result, *rp ;
-    int s, sfd ;
+    SOCKET  sfd ;
+    int     s ;
+    int     yes = 1 ;
 
     bzero(&hints, sizeof(struct addrinfo)) ;
     hints.ai_family = ai_family ;
@@ -22,11 +26,11 @@ int SocketManager::createSocket( const char *host, const char *port, int ai_fami
 
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
+        std::cout << "Trying first interface" << std::endl ;
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol) ;
-        if (sfd == -1)
+        if (!ISVALIDSOCKET(sfd))
             continue ;
-        s = 1 ;
-        if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int)) < 0)
+        if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
         {
             perror("setsockopt()") ;
         }
@@ -38,13 +42,9 @@ int SocketManager::createSocket( const char *host, const char *port, int ai_fami
         }
         close(sfd) ;
     }
-    if (rp == NULL)
-    {
-        fprintf(stderr, "Could not bind\n") ;
-        throw std::runtime_error("Could not bind " + std::string(port)) ;
-        return -1 ;
-    }
     freeaddrinfo(result) ;
+    if (rp == NULL)
+        throw std::runtime_error("Could not bind " + std::string(port)) ;
     return sfd;
 }
 

@@ -12,6 +12,11 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
+#define ISVALIDSOCKET(s) ((s) >= 0)
+#define CLOSESOCKET(s) close(s)
+#define SOCKET int
+#define GETSOCKETERRNO() (errno)
+
 class SocketManager
 {
 private:
@@ -23,7 +28,7 @@ private:
     
 public:
     static int epollFD ;
-    static int createSocket( const char *host, const char *port, int ai_family = AF_INET, int ai_socktype = SOCK_STREAM, int ai_flags = 0) ;
+    static int createSocket( const char *host, const char *port, int ai_family = AF_INET, int ai_socktype = SOCK_STREAM, int ai_flags = AI_PASSIVE) ;
     static int makeSocketNonBlocking( int sfd ) ;
     static int startListening( int sfd ) ;
     static int createEpoll( void ) ;

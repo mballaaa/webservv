@@ -41,8 +41,7 @@ void Multiplex::start( void )
     int sfd, s, efd;
     std::map<int, Server> listeningSockets ;
     std::map<int, Request> requests ;
-    struct epoll_event *events;
-
+    struct epoll_event events[SOMAXCONN];
 
     if (servers.empty())
     {
@@ -62,9 +61,6 @@ void Multiplex::start( void )
         listeningSockets[sfd] = *servIt ;
         servIt++ ;
     }
-
-    /* Buffer where events are returned */
-    events = (epoll_event*)calloc (SOMAXCONN, sizeof(struct epoll_event));
 
     std::map<int, std::string> eventName ;
 
@@ -103,7 +99,6 @@ void Multiplex::start( void )
                 fprintf (stderr, "epoll error\n");
                 close (events[i].data.fd);
                 perror("EPOLLERR | EPOLLHUP") ;
-                exit(3) ;
                 continue;
             }
             else if (listeningSockets.find(events[i].data.fd) != listeningSockets.end())
@@ -117,7 +112,7 @@ void Multiplex::start( void )
 
                 in_len = sizeof in_addr;
                 infd = accept (events[i].data.fd, &in_addr, &in_len);
-                if (infd == -1)
+                if (!ISVALIDSOCKET(infd))
                 {
                     if ((errno == EAGAIN) ||
                         (errno == EWOULDBLOCK))
@@ -145,26 +140,18 @@ void Multiplex::start( void )
 
                 /* Make the incoming socket non-blocking and add it to the
                     list of fds to monitor. */
-                s = SocketManager::makeSocketNonBlocking(infd);
-                if (s == -1)
-                    abort ();
-
+                SocketManager::makeSocketNonBlocking(infd);
                 SocketManager::epollCtlSocket(infd, EPOLL_CTL_ADD) ;
-                Request req(infd, listeningSockets[events[i].data.fd]) ;
-                requests.insert(std::make_pair(infd, Request(infd, listeningSockets[events[i].data.fd]))) ;
-                std::cout << "requests number: " << requests.size() << std::endl ;
-                std::cout << "last request fd: " << infd << std::endl ;
-                if (requests.find(infd) != requests.end())
-                    std::cout << "Server fd" << requests.find(infd)->second.getSocketFD() << std::endl ;
+                requests.insert(std::make_pair(infd, Request(infd, listeningSockets[events[i].data.fd], in_addr))) ;
                 continue;
             }
             else if (events[i].events & EPOLLIN)
             {
-                ssize_t count;
+                ssize_t bytesReceived;
                 char buf[R_SIZE] = {0};
 
-                count = read (events[i].data.fd, buf, sizeof(char) * R_SIZE - 1);
-                if (count == -1)
+                bytesReceived = read (events[i].data.fd, buf, sizeof(char) * R_SIZE - 1);
+                if (bytesReceived == -1)
                 {
                     perror ("read");
                     printf ("Closed connection on descriptor %d\n",
@@ -176,7 +163,7 @@ void Multiplex::start( void )
                     requests.erase(events[i].data.fd) ;
                     continue ;
                 }
-                else if (count == 0)
+                else if (bytesReceived == 0)
                 {
                     /* End of file. The remote has closed the
                         connection. */
@@ -194,7 +181,7 @@ void Multiplex::start( void )
                 std::cout << FOREGRN ;
                 std::cout << "============== Request ==============" << std::endl ;
                 std::cout << "==============+++++++++==============" << std::endl ;
-                s = write (1, buf, count);
+                s = write (1, buf, bytesReceived);
                 std::cout << "==============+++++++++==============" << std::endl ;
                 std::cout << "==============+++++++++==============" << std::endl ;
                 std::cout << RESETTEXT ;
@@ -238,9 +225,5 @@ void Multiplex::start( void )
             }
         }
     }
-
-    free (events);
-
     close (sfd);
-
 }

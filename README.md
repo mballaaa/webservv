@@ -1,6 +1,43 @@
 # webserv
 A HTTP server in C++ 98
 
+## Hands on Network Programming with C
+
+### TCP program flow
+A TCP server listens for connections at a particular port number on a particular interface.
+The program must first initialize a struct addrinfo structure with the proper listening
+IP address and port number. The getaddrinfo() function is helpful so that you can do
+this in an IPv4/IPv6 independent way. The server then creates the socket with a call to
+socket(). The socket must be bound to the listening IP address and port. This is
+accomplished with a call to bind().
+
+![Alt text](image-2.png)
+
+### Socket functions
+The socket APIs provide many functions for use in network programming. Here are the common socket functions that we use in this book:
+
+- `socket()` creates and initializes a new socket.
+- `bind()` associates a socket with a particular local IP address and port number.
+- `listen()` is used on the server to cause a TCP socket to listen for new connections.
+- `connect()` is used on the client to set the remote address and port. In the case of TCP, it also establishes a connection.
+- `accept()` is used on the server to create a new socket for an incoming TCP connection.
+- `send()` and `recv()` are used to send and receive data with a socket.
+- `close()` (Berkeley sockets) and closesocket() (Winsock sockets) are used to close a socket. In the case of TCP, this also terminates the connection.
+- `select()` is used to wait for an event on one or more sockets.
+- `getnameinfo()` and `getaddrinfo()` provide a protocol-independent manner of working with hostnames and addresses.
+- `setsockopt()` is used to change some socket options.
+- `fcntl()` (Berkeley sockets) and ioctlsocket() (Winsock sockets) are also used to get and set some socket options.
+
+You may see some Berkeley socket networking programs using read() and write(). These functions don't port to Winsock, so we prefer send() and recv() here. Some other common functions that are used with Berkeley sockets are poll() and dup(). We will avoid these in order to keep our programs portable.
+
+Other differences between Berkeley sockets and Winsock sockets are addressed later in this
+chapter.
+
+Now that we have an idea of the functions involved, let's consider program design and
+flow next.
+
+## IBM
+
 TCP/IP is an internetworking technology and is named after its two main protocols: Transmission Control Protocol (TCP), and Internet Protocol (IP). You should also be familiar with the following basic internetworking terms:<br>
 
 **client**<br>
@@ -416,3 +453,5 @@ POLLWRBAND
 
 [Data Length and Buffering Considerations
 ](https://datatracker.ietf.org/doc/html/rfc3875#section-9.6)
+
+[Hands on Network Programming with C](https://cdn.discordapp.com/attachments/1070726826676203560/1198052088941379714/Lewis_Van_Winkle_-_Hands-On_Network_Programming_with_C_-_Learn_socket_programming_in_C_and_write_secure_and_optimized_network_code_true_pdf-Packt_2020.pdf?ex=65bd7ff4&is=65ab0af4&hm=99a93f5d9195a9985ea2af9b5da56a43018fca15f533489e0eb241f9349b4492&)
