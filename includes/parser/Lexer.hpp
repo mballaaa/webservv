@@ -13,13 +13,18 @@
 class Lexer
 {
 public:
-    typedef enum { SERVER, OCB, CCB, SINGLE_P, MULTIPLE_P, LOCATION, ERR_PAGE, ALLOW_METHODS, CGI, SEMICOLON, ERROR } sym_t ;
+    typedef enum { SINGLE_P, SERVER, OCB, CCB, MULTIPLE_P, LOCATION, ERR_PAGE, ALLOW_METHODS, CGI, SEMICOLON, ERROR } sym_t ;
     typedef std::string token_t ;
     typedef std::list<std::string> tokens_t ;
     typedef tokens_t::const_iterator iterator_t ;
+    typedef std::map<Lexer::sym_t, std::string> sym_names_t ;
+    typedef std::map<std::string, Lexer::sym_t> name_sym_t ;
+
 
     static tokens_t checkSyntax( const std::string& configPath ) ;
 
+    static sym_names_t symNames ;
+    static name_sym_t nameSyms ;
 private:
     static tokens_t tokens ;
     static iterator_t it ;

@@ -4,6 +4,40 @@ Lexer::tokens_t Lexer::tokens ;
 Lexer::iterator_t Lexer::it ;
 Lexer::iterator_t Lexer::prev ;
 Lexer::sym_t Lexer::sym = Lexer::ERROR ;
+Lexer::sym_names_t Lexer::symNames ;
+Lexer::name_sym_t Lexer::nameSyms ;
+
+static void fillMaps( void )
+{
+	Lexer::symNames[Lexer::SERVER] = "SERVER" ;
+	Lexer::symNames[Lexer::OCB] = "OCB" ;
+	Lexer::symNames[Lexer::CCB] = "CCB" ;
+	Lexer::symNames[Lexer::LOCATION] = "LOCATION" ;
+	Lexer::symNames[Lexer::SEMICOLON] = "SEMICOLON" ;
+	Lexer::symNames[Lexer::ERR_PAGE] = "ERR_PAGE" ;
+	Lexer::symNames[Lexer::ALLOW_METHODS] = "ALLOW_METHODS" ;
+	Lexer::symNames[Lexer::CGI] = "CGI" ;
+	Lexer::symNames[Lexer::MULTIPLE_P] = "MULTIPLE_P" ;
+	Lexer::symNames[Lexer::SINGLE_P] = "SINGLE_P" ;
+
+	Lexer::nameSyms["server"] = Lexer::SERVER ;
+	Lexer::nameSyms["listen"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["server_name"] = Lexer::MULTIPLE_P ;
+	Lexer::nameSyms[";"] = Lexer::SEMICOLON ;
+	Lexer::nameSyms["host"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["root"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["client_max_body_size"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["index"] = Lexer::MULTIPLE_P ;
+	Lexer::nameSyms["error_page"] = Lexer::ERR_PAGE ;
+	Lexer::nameSyms["location"] = Lexer::LOCATION ;
+	Lexer::nameSyms["{"] = Lexer::OCB ;
+	Lexer::nameSyms["autoindex"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["allow_methods"] = Lexer::ALLOW_METHODS ;
+	Lexer::nameSyms["return"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["root"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["cgi"] = Lexer::CGI ;
+	Lexer::nameSyms["}"] = Lexer::CCB ;
+}
 
 Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 {
@@ -40,7 +74,7 @@ Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 		if (scPrev < token.length())
 			tokens.push_back(token.substr(scPrev)) ;
 	}
-
+	fillMaps() ;
 	// std::list<std::string>::iterator it = tokens.begin() ;
 	// while (it != tokens.end())
 	// 	std::cout << *prev = it << std::endl ;
@@ -49,49 +83,12 @@ Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 
 std::string Lexer::getSymbolName( const sym_t& s )
 {
-	if ( s == SERVER)
-		return std::string("SERVER") ;
-	else if ( s == OCB)
-		return std::string("OCB") ;
-	else if ( s == CCB)
-		return std::string("CCB") ;
-	else if ( s == LOCATION)
-		return std::string("LOCATION") ;
-	else if ( s == SEMICOLON)
-		return std::string("SEMICOLON") ;
-	else if (s == ERR_PAGE)
-		return std::string("ERR_PAGE") ;
-	else if (s == ALLOW_METHODS)
-		return std::string("ALLOW_METHODS") ;
-	else if (s == CGI)
-		return std::string("CGI") ;
-	else if (s == MULTIPLE_P)
-		return std::string("MULTI_P") ;
-	return std::string("SINGLE_P") ;
+	return (symNames[s]) ;
 }
 
 void Lexer::nextSym( void )
 {
-	if (*it == "server")
-		sym = SERVER ;
-	else if (*it == "{")
-		sym = OCB ;
-	else if (*it == "}")
-		sym = CCB ;
-	else if (*it == "location")
-		sym = LOCATION ;
-	else if (*it == ";")
-		sym = SEMICOLON ;
-	else if (*it == "error_page")
-		sym = ERR_PAGE ;
-	else if (*it == "allow_methods")
-		sym = ALLOW_METHODS ;
-	else if (*it == "cgi")
-		sym = CGI ;
-	else if (*it == "server_name")
-		sym = MULTIPLE_P ;
-	else
-		sym = SINGLE_P ;
+	sym = nameSyms[*it] ;
 	// std::cout << std::setw(10) << std::left << getSymbolName(sym) << " ";
 	// std::cout << *it << std::endl ;
 	if (it != tokens.end())
@@ -140,6 +137,8 @@ void Lexer::location( void )
 	{
 		if (sym == SINGLE_P)
 			signleParam() ;
+		else if (sym == MULTIPLE_P)
+			multipleParam() ;
 		else if (sym == ERR_PAGE)
 			errPage() ;
 		else if (sym == ALLOW_METHODS)
