@@ -28,7 +28,7 @@ int main( int argc, char **argv )
 		tokens = Lexer::checkSyntax(argv[1]) ;
 		servers = Parser::parse(tokens) ;
 		// std::for_each(servers.begin(), servers.end(), print) ;
-		Multiplex::setServers(servers) ;
+		Multiplex::setup(servers) ;
 		Multiplex::start() ;
 	}
 	catch (std::exception& e)

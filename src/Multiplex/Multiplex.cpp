@@ -1,67 +1,36 @@
 #include "../../includes/Multiplex.hpp"
-#include "../../includes/Request/Request.hpp"
 
-Multiplex::servers_t Multiplex::servers ;
+SOCKET                      Multiplex::epollFD ;
+Multiplex::listeners_t      Multiplex::listeners ;
+Multiplex::requests_t       Multiplex::requests ;
+Multiplex::epoll_event_t    Multiplex::events[SOMAXCONN] = {} ;
 
-void Multiplex::setServers( const servers_t& _servers )
+void Multiplex::setup( const servers_t& servers )
 {
-    servers_t::const_iterator it = _servers.begin() ;
-    while (it != _servers.end())
-        servers.push_back(*it++) ;
-    
-}
-
-void Multiplex::setup( const Server& server )
-{
-    (void)server ;
-    // int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0) ;
-    // if (fd < 0)
-    // {
-    //     perror("socket failed") ;
-    //     throw std::runtime_error("socket() failed successfully") ;
-    // }
-    // std::cout << "Socket open successfully" << std::endl ;
-
-    // sockaddr_in sockaddr ;
-    // sockaddr.sin_family = AF_INET ;
-    // sockaddr.sin_addr.s_addr = INADDR_ANY ;
-    // sockaddr.sin_port = htons(server.getPort()) ;
-
-    // if (bind(fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
-    // {
-    //     perror("bind failed") ;
-    //     close(fd) ;
-    //     throw std::runtime_error("bind() failed successfully") ;
-    // }
-    // std::cout << "Socket bouned successfully" << std::endl ;
-}
-
-void Multiplex::start( void )
-{
-    int sfd, s, efd;
-    std::map<int, Server> listeningSockets ;
-    std::map<int, Request> requests ;
-    struct epoll_event events[SOMAXCONN];
-
     if (servers.empty())
     {
         throw std::runtime_error("Servers are not set") ;
         return ;
     }
-    servers_t::iterator servIt = servers.begin() ;
+
+    servers_t::const_iterator servIt = servers.begin() ;
     // each server should have a socket
-    efd = SocketManager::createEpoll() ;
+    epollFD = SocketManager::createEpoll() ;
     while (servIt != servers.end())
     {
         std::cout << "Listening on: " << servIt->getHost() << ":" << servIt->getPort() << "..." << std::endl ;
-        sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str(), AF_INET, SOCK_STREAM, AI_PASSIVE) ;
+        SOCKET sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str(), AF_INET, SOCK_STREAM, AI_PASSIVE) ;
         SocketManager::makeSocketNonBlocking (sfd);
         SocketManager::startListening(sfd) ;
         SocketManager::epollCtlSocket(sfd, EPOLL_CTL_ADD) ;
-        listeningSockets[sfd] = *servIt ;
+        listeners[sfd] = *servIt ;
         servIt++ ;
     }
+}
 
+void Multiplex::start( void )
+{
+    int s;
     std::map<int, std::string> eventName ;
 
     eventName[EPOLLIN] = "EPOLLIN" ;
@@ -72,11 +41,11 @@ void Multiplex::start( void )
     /* The event loop */
     while (1)
     {
-        int eventCount, i;
+        int eventCount ; // Number of events epoll_wait returned
 
-        eventCount = epoll_wait (efd, events, SOMAXCONN, -1);
+        eventCount = epoll_wait (epollFD, events, SOMAXCONN, -1); // Waiting for new event to occur
         std::cout << eventCount << " events ready" << std::endl ;
-        for (i = 0; i < eventCount; i++)
+        for (int i = 0; i < eventCount; i++)
         {
             std::cout << "descriptor " << events[i].data.fd << " " ;
             if (events[i].events & EPOLLOUT)
@@ -101,7 +70,7 @@ void Multiplex::start( void )
                 perror("EPOLLERR | EPOLLHUP") ;
                 continue;
             }
-            else if (listeningSockets.find(events[i].data.fd) != listeningSockets.end())
+            else if (listeners.find(events[i].data.fd) != listeners.end()) // Check if socket belong to a server
             {
                 /* We have a notification on the listening socket, which
                     means one or more incoming connections. */
@@ -111,7 +80,7 @@ void Multiplex::start( void )
                 char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
 
                 in_len = sizeof in_addr;
-                infd = accept (events[i].data.fd, &in_addr, &in_len);
+                infd = accept (events[i].data.fd, &in_addr, &in_len); // Accept connection
                 if (!ISVALIDSOCKET(infd))
                 {
                     if ((errno == EAGAIN) ||
@@ -138,17 +107,21 @@ void Multiplex::start( void )
                             "(host=%s, port=%s)\n", infd, hbuf, sbuf);
                 }
 
-                /* Make the incoming socket non-blocking and add it to the
-                    list of fds to monitor. */
+                /**
+                 * Make the incoming socket non-blocking and add it to the list of fds to monitor. 
+                */
                 SocketManager::makeSocketNonBlocking(infd);
                 SocketManager::epollCtlSocket(infd, EPOLL_CTL_ADD) ;
-                requests.insert(std::make_pair(infd, Request(infd, listeningSockets[events[i].data.fd], in_addr))) ;
+                requests.insert(std::make_pair(infd, Request(infd, listeners[events[i].data.fd], in_addr))) ;
                 continue;
             }
-            else if (events[i].events & EPOLLIN)
+            else if (events[i].events & EPOLLIN) // check if we have EPOLLIN (connection socket ready to read)
             {
-                ssize_t bytesReceived;
-                char buf[R_SIZE] = {0};
+                /**
+                 * We have a notification on the connection socket meaning there is more data to be read
+                */
+                ssize_t bytesReceived; // number of bytes read returned
+                char buf[R_SIZE] = {0}; // read buffer
 
                 bytesReceived = read (events[i].data.fd, buf, sizeof(char) * R_SIZE - 1);
                 if (bytesReceived == -1)
@@ -192,13 +165,18 @@ void Multiplex::start( void )
                 }
 
                 /**
-                 * Set associated socket to EPOLLOUT to write reponse in the next iteration
+                 * Set connection socket to EPOLLOUT to write reponse in the next iteration
+                 * don't forget that if you didnt set the connection to EPOLLOUT the program
+                 * wont send your response and keep waiting for EPOLLIN
                 */
                 if (requests.find(events[i].data.fd)->second.request.find("\r\n\r\n") != std::string::npos)
                     SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLOUT) ;
             }
-            else if (events[i].events & EPOLLOUT)
+            else if (events[i].events & EPOLLOUT) // check if we have EPOLLOUT (connection socket ready to write)
             {
+                /**
+                 * Set connection socket to EPOLLIN to read another request in the next iteration
+                */
                 SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLIN) ;
                 std::string response("HTTP/1.1 200 OK\r\nContent-Length: 13\r\nContent-Type: text/html\r\n\r\nHello World!\n") ;
                 s = write (events[i].data.fd, response.c_str(), response.size());
@@ -211,6 +189,10 @@ void Multiplex::start( void )
                 std::cout << "==============+++++++++==============" << std::endl ;
                 std::cout << "==============+++++++++==============" << std::endl ;
                 std::cout << RESETTEXT ;
+                /**
+                 * Incas the client request Connection: close we close the connection
+                 * else the connection remains open and waiting for another rquest from the client
+                */
                 if (requests.find(events[i].data.fd)->second.request.find("Connection: close") != std::string::npos)
                 {
                     printf ("Closed connection on descriptor %d\n",
@@ -220,10 +202,13 @@ void Multiplex::start( void )
                     close (events[i].data.fd);
                     // requests.erase(events[i].data.fd) ;
                 }
+                /**
+                 * clear request buffer after processing it and sending request
+                */
                 requests.find(events[i].data.fd)->second.request.clear() ;
                 std::cout << "Response Sent" << std::endl ;
             }
         }
     }
-    close (sfd);
+    // close (sfd);
 }

@@ -19,6 +19,7 @@
 
 #include "SocketManager.hpp"
 #include "Server.hpp"
+#include "Request/Request.hpp"
 
 #define RESETTEXT  "\x1B[0m" // Set all colors back to normal.
 #define FOREBLK  "\x1B[30m" // Black
@@ -36,16 +37,24 @@ class Multiplex
 {
 public:
 	typedef std::vector<Server> servers_t ;
+	typedef std::map<int, Server> listeners_t ;
+	typedef struct epoll_event epoll_event_t ;
+    typedef std::map<int, Request> requests_t ;
+	
 private:
-    static servers_t servers ;
+	static SOCKET 			epollFD ;
+	static listeners_t		listeners ;
+	static requests_t		requests ;
+    static epoll_event_t 	events[SOMAXCONN];
+
 	Multiplex( void ) ;
 	Multiplex( const Multiplex& rhs ) ;
 	Multiplex& operator=( const Multiplex& rhs ) ;
 	~Multiplex( void ) ;
 public:
-    static void setServers( const servers_t& servers ) ;
+    // static void setServers( const servers_t& servers ) ;
     static void start( void ) ;
-    static void setup( const Server& server ) ;
+    static void setup( const servers_t& _servers ) ;
 
 	// Getters
 

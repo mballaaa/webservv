@@ -291,7 +291,33 @@ See [Figure 2](#figure-2) for the general sequence of calls to be followed for m
 In the client/server model, the server provides a resource by listening for clients on a particular port. Such application programs as FTP, SMTP, and Telnet listen on a well-known port, a port reserved for use by a specific application program or protocol. However, for your own client/server application programs, you need a method of assigning port numbers to represent the services you intend to provide. One general method of defining services and their ports is to enter them into the ETC SERVICES file. The programmer uses the getservbyname() function to determine the port for a particular service. If the port number for a particular service changes, only the ETC SERVICES file must be modified.
 
 
+## Keep Alive TCP
 
+To set or get a TCP socket option, call getsockopt(2) to read or setsockopt(2) to write the option with the option level argument set to IPPROTO_TCP.
+
+`TCP_KEEPCNT`
+
+> The maximum number of keepalive probes TCP should send before dropping the connection. This option should not be used in code intended to be portable.
+
+`TCP_KEEPIDLE` (since Linux 2.4)
+
+> The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes, if the socket option SO_KEEPALIVE has been set on this socket. This option should not be used in code intended to be portable.
+
+`TCP_KEEPINTVL` (since Linux 2.4)
+
+> The time (in seconds) between individual keepalive probes. This option should not be used in code intended to be portable.
+
+Example:
+
+```c
+int keepcnt = 5;
+int keepidle = 30;
+int keepintvl = 120;
+
+setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(int));
+setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(int));
+setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(int));
+```
 
 ## resources:
 
