@@ -34,7 +34,6 @@ static void fillMaps( void )
 	Lexer::nameSyms["autoindex"] = Lexer::SINGLE_P ;
 	Lexer::nameSyms["allow_methods"] = Lexer::ALLOW_METHODS ;
 	Lexer::nameSyms["return"] = Lexer::SINGLE_P ;
-	Lexer::nameSyms["root"] = Lexer::SINGLE_P ;
 	Lexer::nameSyms["cgi"] = Lexer::CGI ;
 	Lexer::nameSyms["}"] = Lexer::CCB ;
 }
@@ -174,7 +173,7 @@ void Lexer::cgi( void )
 
 Lexer::tokens_t Lexer::checkSyntax( const std::string& configPath )
 {
-    tokens = lexer(configPath) ;
+	tokens = lexer(configPath) ;
 	it = tokens.begin() ;
 	nextSym() ;
 	while (it != tokens.end() && expect(SERVER))
