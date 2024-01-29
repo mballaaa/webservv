@@ -16,12 +16,15 @@ class Parser
 {
 public:
     typedef std::vector<Server> servers_t ;
+    typedef void (*setter_func_t)() ;
+    typedef std::map<std::string, void (*)(Server&)>  setters_t ;
 
     static servers_t parse( const Lexer::tokens_t& tokens ) ;
 private:
     static servers_t servers ;
     static Lexer::iterator_t curr ;
     static Lexer::iterator_t end ;
+    static setters_t setters ;
 
     static bool next( void ) ;
     static bool expect( const std::string& sym ) ;
@@ -29,10 +32,27 @@ private:
     static Server createServer( void ) ;
     static Location createLocation( void ) ;
 
+    static void tokenHandle( Server &s ) ;
+
     Parser( void ) ;
     Parser( const Parser& rhs ) ;
     Parser& operator=( const Parser& rhs ) ;
     ~Parser( void ) ;
+
+    static void _server( Server& s ) ;
+    static void _listen( Server& s ) ;
+    static void _serverName( Server& s ) ;
+    static void _host( Server& s ) ;
+    static void _clientMaxBodySize( Server& s ) ;
+    static void _index( Server& s ) ;
+    static void _errorPage( Server& s ) ;
+    static void _location( Server& s ) ;
+    static void _autoIndex( Server& s ) ;
+    static void _allowMethods( Server& s ) ;
+    static void _return( Server& s ) ;
+    static void _root( Server& s ) ;
+    static void _cgi( Server& s ) ;
+
 };
 
 
