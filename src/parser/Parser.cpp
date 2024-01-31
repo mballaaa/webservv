@@ -1,16 +1,8 @@
 #include "../../includes/parser/Parser.hpp"
 
 Parser::servers_t   Parser::servers ;
-Parser::setters_t   Parser::setters ;
 Lexer::iterator_t   Parser::curr ;
 Lexer::iterator_t   Parser::end ;
-
-void Parser::tokenHandle( Server &s )
-{
-    if (setters.find(*curr) == setters.end())
-        throw std::runtime_error("Parser::Unexpected token in handle: " + *curr) ;
-    setters[*curr](s) ;
-}
 
 void Parser::_server( Server& s )
 {
@@ -18,10 +10,9 @@ void Parser::_server( Server& s )
     std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("server") ;
     expect("{") ;
-    while (*curr != "}")
-    {
-        tokenHandle(s) ;
-    }
+    // while (*curr != "}")
+    // {
+    // }
     expect("}") ;
     servers.push_back(s) ;
 }
@@ -108,8 +99,11 @@ void Parser::_location( Server& s )
     std::string route(*curr) ;
     next() ;
     expect("{") ;
-    Location l = createLocation() ;
-    s.appendLocation( route, l ) ;
+    /**
+     * create new location
+     * fill the new location from tokens
+     * add the newly created location to the server
+    */
     expect("}") ;
 }
 
@@ -142,25 +136,11 @@ Parser::servers_t Parser::parse( const Lexer::tokens_t& tokens )
 {
     curr = tokens.begin();
     end = tokens.end() ;
-    setters["server"] = _server ;
-    setters["listen"] = _listen ;
-    setters["server_name"] = _serverName ;
-    setters["host"] = _host ;
-    setters["root"] = _root ;
-    setters["client_max_body_size"] = _clientMaxBodySize ;
-    setters["index"] = _index ;
-    setters["error_page"] = _errorPage ;
-    setters["location"] = _location ;
-    setters["autoindex"] = _autoIndex ;
-    setters["allow_methods"] = _allowMethods ;
-    setters["return"] = _return ;
-    setters["root"] = _root ;
-    setters["cgi"] = _cgi ;
-    while ( curr != end )
+    while ( expect("server") )
     {
-        Server s ;
-        tokenHandle(s) ;
-        // servers.push_back(createServer()) ;
+        expect("{") ;
+        servers.push_back(createServer()) ;
+        expect("}") ;
     }
     return (servers) ;
 }
@@ -179,10 +159,16 @@ bool Parser::expect( const std::string& sym )
 {
     if ( accept(sym) )
         return (true) ;
+    if (curr == end)
+        return (false) ;
     throw std::runtime_error("expected " + sym + " got: " + *curr) ;
     return (false) ;
 }
 
+/**
+ * refactor this to be using the if/else calling functions according to the token
+ * so the code is more readable 
+*/
 Server Parser::createServer( void )
 {
     Server s ;
@@ -248,6 +234,10 @@ Server Parser::createServer( void )
     return (s) ;
 }
 
+/**
+ * refactor this to be using the if/else calling functions according to the token
+ * so the code is more readable 
+*/
 Location Parser::createLocation( void )
 {
     Location l ;
