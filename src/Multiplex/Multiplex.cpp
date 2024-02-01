@@ -179,6 +179,7 @@ void Multiplex::start( void )
                 */
                 SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLIN) ;
                 std::string response("HTTP/1.1 200 OK\r\nContent-Length: 13\r\nContent-Type: text/html\r\n\r\nHello World!\n") ;
+                // std::string response("HTTP/1.1 302 Found\r\nLocation: http://example.com/new-page\r\n\r\n") ; // redirection response
                 s = write (events[i].data.fd, response.c_str(), response.size());
                 if (s == -1)
                     throw std::runtime_error("Cant write response") ;
