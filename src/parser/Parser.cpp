@@ -6,7 +6,7 @@ Lexer::iterator_t   Parser::end ;
 
 void Parser::_listen( Server& s )
 {
-    (void) s ;
+(void) s ;
     std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("listen") ;
     s.setPort(*curr) ;
@@ -159,7 +159,9 @@ void Parser::_return( Location& l )
      * return <code> [<url>] [<text>];
     */
     expect("return") ;
-    l.setReturn(*curr) ;
+    std::string statusCode = *curr ;
+    next() ;
+    l.setReturn(statusCode, *curr) ;
     next() ;
     expect(";") ;
 }
@@ -173,7 +175,6 @@ void Parser::_cgi( Location& l )
     next() ;
     expect(";") ;
 }
-
 
 Parser::servers_t Parser::parse( const Lexer::tokens_t& tokens )
 {
@@ -208,10 +209,6 @@ bool Parser::expect( const std::string& sym )
     return (false) ;
 }
 
-/**
- * refactor this to be using the if/else calling functions according to the token
- * so the code is more readable 
-*/
 Server Parser::createServer( void )
 {
     Server s ;
@@ -239,10 +236,6 @@ Server Parser::createServer( void )
     return (s) ;
 }
 
-/**
- * refactor this to be using the if/else calling functions according to the token
- * so the code is more readable 
-*/
 Location Parser::createLocation( void )
 {
     Location l ;

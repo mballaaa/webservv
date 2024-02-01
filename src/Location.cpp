@@ -47,7 +47,7 @@ const Location::Methods_t&	Location::getAllowedMethods( void ) const
     return (_allowedMethods) ;
 }
 
-const std::string&				Location::getReturn( void ) const
+const Location::redirection_t&	Location::getReturn( void ) const
 {
     return (_return) ;
 }
@@ -82,9 +82,17 @@ void 						Location::setAllowedMethods( const Methods_t& _allowedMethods )
     this->_allowedMethods = _allowedMethods ;
 }
 
-void 						Location::setReturn( const std::string& _return )
+void 						Location::setReturn( const std::string& statusCodeStr, const std::string& _return )
 {
-    this->_return = _return ;
+    int statusCode = atol(statusCodeStr.c_str()) ;
+    // Implement support for common HTTP redirection status codes (301, 302, 303, 307, 308).
+    // if (statusCode != 301
+    //     && statusCode != 302
+    //     && statusCode != 303
+    //     && statusCode != 307
+    //     && statusCode != 308)
+    //     throw std::runtime_error("Support is only for common HTTP redirection status codes (301, 302, 303, 307, 308).") ;
+    this->_return = std::make_pair(statusCode, _return) ;
 }
 
 void 						Location::setRoot( const std::string& _root )
@@ -133,7 +141,8 @@ std::ostream& operator<<( std::ostream& os, const Location& location )
     }
     os << std::endl ;
 
-    os << "\t\tReturn: " << location.getReturn() << std::endl ;
+    Location::redirection_t redir = location.getReturn() ;
+    os << "\t\tReturn: " << redir.first << " " << redir.second << std::endl ;
     os << "\t\tRoot: " << location.getRoot() << std::endl ;
     os << "\t\tcgi: " << (location.getCgi() ? "on" : "off") << std::endl ;
 
