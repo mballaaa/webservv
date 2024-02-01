@@ -35,7 +35,8 @@ private:
     Parser& operator=( const Parser& rhs ) ;
     ~Parser( void ) ;
 
-    static void _server( Server& s ) ;
+    // Server Context
+
     static void _listen( Server& s ) ;
     static void _serverName( Server& s ) ;
     static void _host( Server& s ) ;
@@ -44,10 +45,18 @@ private:
     static void _errorPage( Server& s ) ;
     static void _location( Server& s ) ;
     static void _autoIndex( Server& s ) ;
-    static void _allowMethods( Server& s ) ;
-    static void _return( Server& s ) ;
     static void _root( Server& s ) ;
-    static void _cgi( Server& s ) ;
+
+    // Location Context
+
+    static void _autoIndex( Location& s ) ;
+    static void _index( Location& s ) ;
+    static void _allowMethods( Location& s ) ;
+    static void _return( Location& s ) ;
+    static void _root( Location& s ) ;
+    static void _cgi( Location& s ) ;
+
+
 
 };
 
