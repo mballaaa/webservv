@@ -4,6 +4,7 @@ SOCKET                      Multiplex::epollFD ;
 Multiplex::listeners_t      Multiplex::listeners ;
 Multiplex::requests_t       Multiplex::requests ;
 Multiplex::epoll_event_t    Multiplex::events[SOMAXCONN] = {} ;
+Multiplex::host_port_map_t  Multiplex::hostPortMap ;
 
 void Multiplex::setup( const servers_t& servers )
 {
@@ -18,11 +19,19 @@ void Multiplex::setup( const servers_t& servers )
     epollFD = SocketManager::createEpoll() ;
     while (servIt != servers.end())
     {
-        std::cout << "Listening on: " << servIt->getHost() << ":" << servIt->getPort() << "..." << std::endl ;
-        SOCKET sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str(), AF_INET, SOCK_STREAM, AI_PASSIVE) ;
-        SocketManager::makeSocketNonBlocking (sfd);
-        SocketManager::startListening(sfd) ;
-        SocketManager::epollCtlSocket(sfd, EPOLL_CTL_ADD) ;
+        SOCKET sfd ;
+        std::string id = servIt->getHost() + ":" + servIt->getPort() ;
+        std::cout << "Listening on: " << id << "..." << std::endl ;
+        if (hostPortMap.find(id) != hostPortMap.end()) // host:port already binded
+            sfd = hostPortMap[id] ;
+        else // create new socket, bind, listen and add to epoll finally add it to hostPortMap
+        {
+            sfd = SocketManager::createSocket(servIt->getHost().c_str(), servIt->getPort().c_str(), AF_INET, SOCK_STREAM, AI_PASSIVE) ;
+            SocketManager::makeSocketNonBlocking (sfd);
+            SocketManager::startListening(sfd) ;
+            SocketManager::epollCtlSocket(sfd, EPOLL_CTL_ADD) ;
+            hostPortMap.insert(std::make_pair(id, sfd)) ;
+        }
         listeners[sfd] = *servIt ;
         servIt++ ;
     }
