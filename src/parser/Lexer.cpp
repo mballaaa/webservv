@@ -15,6 +15,7 @@ static void fillMaps( void )
 	Lexer::symNames[Lexer::LOCATION] = "LOCATION" ;
 	Lexer::symNames[Lexer::SEMICOLON] = "SEMICOLON" ;
 	Lexer::symNames[Lexer::ERR_PAGE] = "ERR_PAGE" ;
+	Lexer::symNames[Lexer::RETURN] = "RETURN" ;
 	Lexer::symNames[Lexer::ALLOW_METHODS] = "ALLOW_METHODS" ;
 	Lexer::symNames[Lexer::CGI] = "CGI" ;
 	Lexer::symNames[Lexer::MULTIPLE_P] = "MULTIPLE_P" ;
@@ -33,23 +34,37 @@ static void fillMaps( void )
 	Lexer::nameSyms["{"] = Lexer::OCB ;
 	Lexer::nameSyms["autoindex"] = Lexer::SINGLE_P ;
 	Lexer::nameSyms["allow_methods"] = Lexer::ALLOW_METHODS ;
-	Lexer::nameSyms["return"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["return"] = Lexer::RETURN ;
 	Lexer::nameSyms["cgi"] = Lexer::CGI ;
 	Lexer::nameSyms["}"] = Lexer::CCB ;
 }
 
+/**
+ * This function opens and split the text in the config file into a vector of tokens
+*/
 Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 {
+	/**
+	 * open file and check if file is ok to read and its not empty
+	*/
 	std::ifstream configFile(configPath.c_str()) ;
 	if (!configFile)
 		throw std::runtime_error("Couldn't open: " + configPath) ;
 	if (configFile.peek() == std::ifstream::traits_type::eof())
 		throw std::runtime_error("Confing file is empty") ;
 
+	/**
+	 * fill string stream with read buffer
+	*/
 	std::stringstream ss ;
 	ss << configFile.rdbuf() ;
 	configFile.close() ;
 
+	/**
+	 * split all the text with white space as a delimiter using stringstream
+	 * and then split it again using delimiters ``{}; ''
+	 * and fill the tokens vector
+	*/
 	std::string token ;
 	while (ss >> token)
 	{
@@ -73,7 +88,7 @@ Lexer::tokens_t Lexer::lexer( const std::string& configPath )
 		if (scPrev < token.length())
 			tokens.push_back(token.substr(scPrev)) ;
 	}
-	fillMaps() ;
+	fillMaps() ; // fills the maps for (symbol names)
 	// std::list<std::string>::iterator it = tokens.begin() ;
 	// while (it != tokens.end())
 	// 	std::cout << *prev = it << std::endl ;
@@ -87,17 +102,20 @@ std::string Lexer::getSymbolName( const sym_t& s )
 
 void Lexer::nextSym( void )
 {
+	if (it != tokens.end())
+		prev = it++ ;
 	sym = nameSyms[*it] ;
 	// std::cout << std::setw(10) << std::left << getSymbolName(sym) << " ";
 	// std::cout << *it << std::endl ;
-	if (it != tokens.end())
-		prev = it++ ;
 }
 
 bool Lexer::accept(sym_t s)
 {
     if (sym == s) {
-        nextSym();
+		do
+		{
+	        nextSym();
+		} while (sym == SEMICOLON && s == SEMICOLON);
         return (true) ;
     }
     return (false) ;
@@ -132,7 +150,7 @@ void Lexer::location( void )
 	std::string path(*it) ;
 	expect(SINGLE_P) ;
 	expect(OCB) ;
-	while (sym == SINGLE_P || sym == ERR_PAGE || sym == ALLOW_METHODS || sym == CGI || sym == MULTIPLE_P )
+	while (sym == SINGLE_P || sym == ERR_PAGE || sym == ALLOW_METHODS || sym == CGI || sym == MULTIPLE_P || sym == RETURN )
 	{
 		if (sym == SINGLE_P)
 			signleParam() ;
@@ -140,6 +158,8 @@ void Lexer::location( void )
 			multipleParam() ;
 		else if (sym == ERR_PAGE)
 			errPage() ;
+		else if (sym == RETURN)
+			_return() ;
 		else if (sym == ALLOW_METHODS)
 			allowMethods() ;
 		else if (sym == CGI)
@@ -151,6 +171,14 @@ void Lexer::location( void )
 void Lexer::errPage( void )
 {
 	expect(ERR_PAGE) ;
+	expect(SINGLE_P) ;
+	expect(SINGLE_P) ;
+	expect(SEMICOLON) ;
+}
+
+void Lexer::_return( void )
+{
+	expect(RETURN) ;
 	expect(SINGLE_P) ;
 	expect(SINGLE_P) ;
 	expect(SEMICOLON) ;
@@ -170,12 +198,11 @@ void Lexer::cgi( void )
 	expect(SEMICOLON) ;
 }
 
-
 Lexer::tokens_t Lexer::checkSyntax( const std::string& configPath )
 {
 	tokens = lexer(configPath) ;
 	it = tokens.begin() ;
-	nextSym() ;
+	sym = nameSyms[*it] ;
 	while (it != tokens.end() && expect(SERVER))
 	{
 		expect(OCB) ;
