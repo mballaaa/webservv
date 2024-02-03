@@ -37,15 +37,17 @@ class Multiplex
 {
 public:
 	typedef std::vector<Server> servers_t ;
-	typedef std::map<int, Server> listeners_t ;
+	typedef std::map<SOCKET, Server> listeners_t ;
+	typedef std::map<std::string, SOCKET> host_port_map_t ;
 	typedef struct epoll_event epoll_event_t ;
-    typedef std::map<int, Request> requests_t ;
+    typedef std::map<SOCKET, Request> requests_t ;
 	
 private:
 	static SOCKET 			epollFD ;
 	static listeners_t		listeners ;
 	static requests_t		requests ;
-    static epoll_event_t 	events[SOMAXCONN];
+    static epoll_event_t 	events[SOMAXCONN] ;
+	static host_port_map_t	hostPortMap ;
 
 	Multiplex( void ) ;
 	Multiplex( const Multiplex& rhs ) ;
