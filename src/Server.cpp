@@ -2,7 +2,6 @@
 
 Server::Server( void ) : _serverNames(), _port(), _root(""), _host(""), _clientMaxBodySize(), _errorPages()
 {
-    // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
     // this->_locations.insert(std::make_pair(
     //     "/",
     //     Location() 
@@ -11,7 +10,6 @@ Server::Server( void ) : _serverNames(), _port(), _root(""), _host(""), _clientM
 
 Server::Server( const Server& rhs )
 {
-    // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
     serverNames_t::const_iterator itS = rhs._serverNames.begin() ;
     while (itS != rhs._serverNames.end())
         this->_serverNames.push_back(*itS++) ;
@@ -33,7 +31,6 @@ Server::Server( const Server& rhs )
 
 Server& Server::operator=( const Server& rhs )
 {
-    std::cerr << __PRETTY_FUNCTION__ << std::endl ;
     
     serverNames_t::const_iterator itS = rhs._serverNames.begin() ;
     this->_serverNames.clear() ;
@@ -60,7 +57,6 @@ Server& Server::operator=( const Server& rhs )
 
 Server::~Server( void )
 {
-    // std::cerr << __PRETTY_FUNCTION__ << std::endl ;
 }
 
 const Server::serverNames_t&						Server::getServerNames ( void ) const
