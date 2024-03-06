@@ -1,6 +1,6 @@
 #include "../includes/Location.hpp"
 
-Location::Location( void ) : _autoIndex(false), _index(""), _allowedMethods(), _return(), _root(""), _cgi(false)
+Location::Location( void ) : _autoIndex(false), _index(), _allowedMethods(), _return(), _root(""), _cgi(false)
 {
 }
 
@@ -37,7 +37,7 @@ const bool&						Location::getAutoIndex( void ) const
     return (_autoIndex) ;
 }
 
-const std::string&				Location::getIndex( void ) const
+const std::vector<std::string>&				Location::getIndex( void ) const
 {
     return (_index) ;
 }
@@ -74,7 +74,7 @@ void 						Location::setAutoIndex( const std::string& _autoIndex )
 
 void 						Location::setIndex( const std::string& _index )
 {
-    this->_index = _index ;
+    this->_index.push_back(_index) ;
 }
 
 void 						Location::setAllowedMethods( const Methods_t& _allowedMethods )
@@ -128,7 +128,16 @@ static const std::string getMethod( Location::Method_t method )
 std::ostream& operator<<( std::ostream& os, const Location& location )
 {
     os << "\t\tAutoIndex: " << (location.getAutoIndex() ? "on" : "off") << std::endl ;
-    os << "\t\tIndex: " << location.getIndex() << std::endl ;
+
+    std::vector<std::string>::const_iterator inx = location.getIndex().begin() ;
+    os << "\t\tIndex: " ;
+    while (inx != location.getIndex().end())
+    {
+        os << *inx++ ;
+        if (inx != location.getIndex().end())
+            os << ", " ;
+        
+    }
     
     Location::Methods_t methods = location.getAllowedMethods() ;
     Location::Methods_t::iterator itMethod = methods.begin() ;

@@ -50,9 +50,14 @@ void Parser::_clientMaxBodySize( Server& s )
 
 void Parser::_index( Server& s )
 {
-    expect("index") ;
-    s.setIndex(*curr) ;
-    next() ;
+    /**
+     * could have multiple index files
+    */
+    while ( *curr != ";" )
+    {
+        s.setIndex(*curr) ;
+        next() ;
+    }
     expect(";") ;
 }
 

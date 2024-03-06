@@ -14,12 +14,12 @@ public:
 	typedef std::pair<int, std::string> redirection_t ;
 	
 private:
-	bool			_autoIndex ;
-	std::string		_index ;
-	Methods_t		_allowedMethods ;
-	redirection_t	_return ;
-	std::string		_root ;
-	bool			_cgi ;
+	bool						_autoIndex ;
+	std::vector<std::string>	_index ;
+	Methods_t					_allowedMethods ;
+	redirection_t				_return ;
+	std::string					_root ;
+	bool						_cgi ;
 public:
 	Location( void ) ;
 	Location( const Location& rhs ) ;
@@ -28,7 +28,7 @@ public:
 
 	// Getters
 	const bool&					getAutoIndex( void ) const ;
-	const std::string&			getIndex( void ) const ;
+	const std::vector<std::string>&			getIndex( void ) const ;
 	const Methods_t&			getAllowedMethods( void ) const ;
 	const redirection_t&		getReturn( void ) const ;
 	const std::string&			getRoot( void ) const ;

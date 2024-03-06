@@ -64,7 +64,7 @@ const Server::serverNames_t&						Server::getServerNames ( void ) const
     return (_serverNames) ;
 }
 
-const std::string&						Server::getIndex ( void ) const
+const std::vector<std::string>&						Server::getIndex ( void ) const
 {
     return (_index) ;
 }
@@ -109,7 +109,7 @@ void 							Server::setServerNames( const Server::serverNames_t& _serverNames )
 
 void 							Server::setIndex( const std::string& _index )
 {
-    this->_index = _index ;
+    this->_index.push_back(_index) ;
 }
 
 void 							Server::setPort( const std::string& _port )
@@ -186,7 +186,15 @@ std::ostream& operator<<( std::ostream& os, const Server& server )
     }
     std::cout << std::endl ;
 
-    os << "Index: " << server.getIndex() << std::endl ;
+    std::vector<std::string>::const_iterator inx = server.getIndex().begin() ;
+    os << "\t\tIndex: " ;
+    while (inx != server.getIndex().end())
+    {
+        os << *inx++ ;
+        if (inx != server.getIndex().end())
+            os << ", " ;
+        
+    }
     os << "Port: " << server.getPort() << std::endl ;
     os << "Root: " << server.getRoot() << std::endl ;
     os << "Host: " << server.getHost() << std::endl ;

@@ -13,14 +13,14 @@ public:
 	typedef std::vector<std::string> serverNames_t ;
 	typedef std::map<int, std::string> errorPages_t ;
 private:
-	serverNames_t		_serverNames ;
-	std::string			_index ;
-	std::string			_port ;
-	std::string			_root ;
-	std::string			_host ;
-	size_t				_clientMaxBodySize ;
-	errorPages_t		_errorPages ;
-	Locations_t			_locations ;
+	serverNames_t				_serverNames ;
+	std::vector<std::string>	_index ;
+	std::string					_port ;
+	std::string					_root ;
+	std::string					_host ;
+	size_t						_clientMaxBodySize ;
+	errorPages_t				_errorPages ;
+	Locations_t					_locations ;
 
 	int socketfd ;
 
@@ -32,7 +32,7 @@ public:
 
 	// Getters
 	const serverNames_t&			getServerNames ( void ) const ;
-	const std::string&				getIndex ( void ) const ;
+	const std::vector<std::string>&				getIndex ( void ) const ;
 	const std::string&				getPort ( void ) const ;
 	const std::string&				getRoot ( void ) const ;
 	const std::string&				getHost ( void ) const ;
