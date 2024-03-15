@@ -13,6 +13,8 @@
 // 	std::cout << s << std::endl ;
 // }
 
+
+
 int main( int argc, char **argv )
 {
 	Parser::servers_t servers ;
@@ -29,6 +31,7 @@ int main( int argc, char **argv )
 		servers = Parser::parse(tokens) ;
 		// std::for_each(servers.begin(), servers.end(), print) ;
 		Multiplex::setup(servers) ;
+		// hani hadi nzid servers f func dyal start  (by mballa)
 		Multiplex::start() ;
 	}
 	catch (std::exception& e)

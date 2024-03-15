@@ -1,5 +1,6 @@
 #include "../../includes/Multiplex.hpp"
 
+#include "../../includes/Request/Http_req.hpp"
 SOCKET                      Multiplex::epollFD ;
 Multiplex::listeners_t      Multiplex::listeners ;
 Multiplex::requests_t       Multiplex::requests ;
@@ -37,7 +38,7 @@ void Multiplex::setup( const servers_t& servers )
     }
 }
 
-void Multiplex::start( void )
+void Multiplex::start()
 {
     int s;
     std::map<int, std::string> eventName ;
@@ -47,11 +48,13 @@ void Multiplex::start( void )
     eventName[EPOLLOUT] = "EPOLLOUT" ;
     eventName[EPOLLERR] = "EPOLLERR" ;
     eventName[EPOLLHUP] = "EPOLLHUP" ;
+  
     /* The event loop */
     while (1)
     {
         int eventCount ; // Number of events epoll_wait returned
-
+        /// i add this to get some data from config file like clientMaxSize
+      
         eventCount = epoll_wait (epollFD, events, SOMAXCONN, -1); // Waiting for new event to occur
         std::cout << eventCount << " events ready" << std::endl ;
         for (int i = 0; i < eventCount; i++)
@@ -159,20 +162,26 @@ void Multiplex::start( void )
                     continue ;
                 }
                 requests.find(events[i].data.fd)->second.request += buf ;
+               
                 /* Write the buffer to standard output */
                 std::cout << FOREGRN ;
                 std::cout << "============== Request ==============" << std::endl ;
                 std::cout << "==============+++++++++==============" << std::endl ;
-                s = write (1, buf, bytesReceived);
+             //  s = write (1, buf, bytesReceived);
+                // get 
+                //  start parse
+
+                Http_req htt(buf,bytesReceived,listeners);
                 std::cout << "==============+++++++++==============" << std::endl ;
                 std::cout << "==============+++++++++==============" << std::endl ;
+
                 std::cout << RESETTEXT ;
                 if (s == -1)
                 {
                     perror ("write");
                     throw std::runtime_error("Could not write in ") ;
                 }
-
+                
                 /**
                  * Set connection socket to EPOLLOUT to write reponse in the next iteration
                  * don't forget that if you didnt set the connection to EPOLLOUT the program
@@ -192,13 +201,13 @@ void Multiplex::start( void )
                 s = write (events[i].data.fd, response.c_str(), response.size());
                 if (s == -1)
                     throw std::runtime_error("Cant write response") ;
-                std::cout << FOREBLU ;
-                std::cout << "============== Response ==============" << std::endl ;
-                std::cout << "==============++++++++++==============" << std::endl ;
-                write (1, response.c_str(), response.size());
-                std::cout << "==============+++++++++==============" << std::endl ;
-                std::cout << "==============+++++++++==============" << std::endl ;
-                std::cout << RESETTEXT ;
+                // std::cout << FOREBLU ;
+                // std::cout << "============== Response ==============" << std::endl ;
+             //    std::cout << "==============++++++++++==============" << std::endl ;
+              //   write (1, response.c_str(), response.size());
+                // std::cout << "==============+++++++++==============" << std::endl ;
+                // std::cout << "==============+++++++++==============" << std::endl ;
+                // std::cout << RESETTEXT ;
                 /**
                  * Incas the client request Connection: close we close the connection
                  * else the connection remains open and waiting for another rquest from the client

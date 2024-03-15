@@ -18,6 +18,8 @@ public:
     std::string request ;
 	Request( const int& socketfd, const Server& owner, const struct sockaddr& in_addr ) ;
 	Request( const Request& rhs ) ;
+	
+
 	~Request( void ) ;
 
 	// Getters

@@ -1,6 +1,6 @@
 #include "../includes/Location.hpp"
 
-Location::Location( void ) : _autoIndex(false), _index(), _allowedMethods(), _return(), _root("/var/www"), _cgi(false)
+Location::Location( void ) : _autoIndex(false), _index(), _allowedMethods(), _return(), _root(""), _cgi(false)
 {
 }
 

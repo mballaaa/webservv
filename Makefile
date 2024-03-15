@@ -12,6 +12,7 @@ SRC =	main.cpp						\
 		src/Multiplex/Multiplex.cpp		\
 		src/Multiplex/SocketManager.cpp	\
 		src/Request/Request.cpp			\
+		src/Request/Http_req.cpp  \
 
 OBJ = $(SRC:.cpp=.o)
 
