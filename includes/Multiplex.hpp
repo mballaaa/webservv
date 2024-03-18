@@ -55,7 +55,7 @@ private:
 	~Multiplex( void ) ;
 public:
     // static void setServers( const servers_t& servers ) ;
-    static void start( void ) ;
+    static void start( ) ;
     static void setup( const servers_t& _servers ) ;
 
 	// Getters
