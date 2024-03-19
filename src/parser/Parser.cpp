@@ -6,8 +6,6 @@ Lexer::iterator_t   Parser::end ;
 
 void Parser::_listen( Server& s )
 {
-(void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("listen") ;
     s.setPort(*curr) ;
     next() ;
@@ -16,8 +14,6 @@ void Parser::_listen( Server& s )
 
 void Parser::_serverName( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("server_name") ;
     //! consider testing if the server name doesnt end with semicolon
     while ( *curr != ";" )
@@ -30,8 +26,6 @@ void Parser::_serverName( Server& s )
 
 void Parser::_host( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("host") ;
     s.setHost(*curr) ;
     next() ;
@@ -40,8 +34,6 @@ void Parser::_host( Server& s )
 
 void Parser::_root( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("root") ;
     s.setRoot(*curr) ;
     next() ;
@@ -50,8 +42,6 @@ void Parser::_root( Server& s )
 
 void Parser::_clientMaxBodySize( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("client_max_body_size") ;
     s.setClientMaxBodySize(std::atol(curr->c_str())) ;
     next() ;
@@ -60,18 +50,19 @@ void Parser::_clientMaxBodySize( Server& s )
 
 void Parser::_index( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
-    expect("index") ;
-    s.setIndex(*curr) ;
-    next() ;
+    /**
+     * could have multiple index files
+    */
+    while ( *curr != ";" )
+    {
+        s.setIndex(*curr) ;
+        next() ;
+    }
     expect(";") ;
 }
 
 void Parser::_errorPage( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("error_page") ;
     int statusCode = atol(curr->c_str()) ;
     next() ;
@@ -82,8 +73,6 @@ void Parser::_errorPage( Server& s )
 
 void Parser::_location( Server& s )
 {
-    (void) s ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("location") ;
     std::string route(*curr) ;
     next() ;
@@ -95,8 +84,6 @@ void Parser::_location( Server& s )
 
 void Parser::_root( Location& l )
 {
-    (void) l ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("root") ;
     l.setRoot(*curr) ;
     next() ;
@@ -105,8 +92,6 @@ void Parser::_root( Location& l )
 
 void Parser::_index( Location& l )
 {
-    (void) l ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     /**
      * could have multiple index files
     */
@@ -120,8 +105,6 @@ void Parser::_index( Location& l )
 
 void Parser::_autoIndex( Location& l )
 {
-    (void) l ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("autoindex") ;
     l.setAutoIndex(*curr) ;
     next() ;
@@ -130,8 +113,6 @@ void Parser::_autoIndex( Location& l )
 
 void Parser::_allowMethods( Location& l )
 {
-    (void) l ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("allow_methods") ;
     Location::Methods_t methods ;
     while ( *curr != ";" )
@@ -152,8 +133,6 @@ void Parser::_allowMethods( Location& l )
 
 void Parser::_return( Location& l )
 {
-    (void) l ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     /**
      * return could have 1 or 2 values
      * return <code> [<url>] [<text>];
@@ -168,8 +147,6 @@ void Parser::_return( Location& l )
 
 void Parser::_cgi( Location& l )
 {
-    (void) l ;
-    std::cout << __PRETTY_FUNCTION__ << std::endl ;
     expect("cgi") ;
     l.setCgi(*curr) ;
     next() ;

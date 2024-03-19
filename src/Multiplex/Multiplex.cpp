@@ -38,7 +38,7 @@ void Multiplex::setup( const servers_t& servers )
     }
 }
 
-void Multiplex::start()
+void Multiplex::start( void )
 {
     int s;
     std::map<int, std::string> eventName ;

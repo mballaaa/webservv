@@ -1,11 +1,7 @@
 #include "../includes/Server.hpp"
 
-Server::Server( void ) : _serverNames(), _port(), _root(""), _host(""), _clientMaxBodySize(), _errorPages()
+Server::Server( void ) : _serverNames(), _port(), _root("/var/www/"), _host(""), _clientMaxBodySize(), _errorPages()
 {
-    // this->_locations.insert(std::make_pair(
-    //     "/",
-    //     Location() 
-    // )) ;
 }
 
 Server::Server( const Server& rhs )
