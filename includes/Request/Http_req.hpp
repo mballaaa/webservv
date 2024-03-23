@@ -35,6 +35,8 @@ private:
     int byterec;
 
 public:
+    Http_req();
+    Http_req& operator=(const Http_req &obj);
     void debugFunction();
     Http_req(std::string req,int byterec, Multiplex::listeners_t listenrs);
    void parse_re(std ::string bufer,int bytee);
