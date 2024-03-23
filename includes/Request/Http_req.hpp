@@ -45,6 +45,16 @@ public:
     void LetGet();
     void CheckLoc();
     ~Http_req();
+
+
+    /*  Getter*/
+ const std::string& getTarget() const;
+    const std::string& getMethod() const;
+    const std::string& getPath() const;
+    const std::string& getHttpVersion() const;
+    const std::map<std::string, std::string>& getHeader() const;
+    const Server& getServer() const;
+    const Location& getLocation() const;
 };
 
 #endif

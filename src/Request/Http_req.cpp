@@ -57,6 +57,34 @@ Http_req& Http_req::operator=(const Http_req &obj)
     }
     return *this;
 }
+/*  Getter   */
+const std::string& Http_req::getTarget() const {
+    return _target;
+}
+
+const std::string& Http_req::getMethod() const {
+    return method;
+}
+
+const std::string& Http_req::getPath() const {
+    return path;
+}
+
+const std::string& Http_req::getHttpVersion() const {
+    return http_ver;
+}
+
+const std::map<std::string, std::string>& Http_req::getHeader() const {
+    return header;
+}
+
+const Server& Http_req::getServer() const {
+    return server;
+}
+
+const Location& Http_req::getLocation() const {
+    return _loca;
+}
 /*
     structure of request
         ===> start line
