@@ -62,9 +62,15 @@ void Parser::_index( Server& s )
 {
     (void) s ;
     std::cout << __PRETTY_FUNCTION__ << std::endl ;
+    /**
+     * could have multiple index files
+    */
     expect("index") ;
-    s.setIndex(*curr) ;
-    next() ;
+    while ( *curr != ";" )
+    {
+        s.setIndex(*curr) ;
+        next() ;
+    }
     expect(";") ;
 }
 
@@ -110,6 +116,7 @@ void Parser::_index( Location& l )
     /**
      * could have multiple index files
     */
+    expect("index") ;
     while ( *curr != ";" )
     {
         l.setIndex(*curr) ;

@@ -28,11 +28,13 @@ private:
     std ::string method;
     std::string path;
     std ::string http_ver;
+    std ::string body;
 
    std::map<std::string, std::string> header; 
     Server server;
     Location _loca;
     int byterec;
+
 
 public:
     Http_req();
@@ -48,7 +50,8 @@ public:
 
 
     /*  Getter*/
- const std::string& getTarget() const;
+  const std::string& getTarget() const;
+  const std::string& getBody() const;
     const std::string& getMethod() const;
     const std::string& getPath() const;
     const std::string& getHttpVersion() const;
