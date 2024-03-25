@@ -30,7 +30,7 @@ int SocketManager::createSocket( const char *host, const char *port, int ai_fami
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol) ;
         if (!ISVALIDSOCKET(sfd))
             continue ;
-        if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
+        if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &yes, sizeof(int)) < 0)
         {
             perror("setsockopt()") ;
         }

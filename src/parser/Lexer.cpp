@@ -27,6 +27,8 @@ static void fillMaps( void )
 	Lexer::nameSyms[";"] = Lexer::SEMICOLON ;
 	Lexer::nameSyms["host"] = Lexer::SINGLE_P ;
 	Lexer::nameSyms["root"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["upload"] = Lexer::SINGLE_P ;
+	Lexer::nameSyms["upload_path"] = Lexer::SINGLE_P ;
 	Lexer::nameSyms["client_max_body_size"] = Lexer::SINGLE_P ;
 	Lexer::nameSyms["index"] = Lexer::MULTIPLE_P ;
 	Lexer::nameSyms["error_page"] = Lexer::ERR_PAGE ;

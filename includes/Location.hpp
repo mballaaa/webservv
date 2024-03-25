@@ -20,6 +20,8 @@ private:
 	redirection_t				_return ;
 	std::string					_root ;
 	bool						_cgi ;
+	bool						_upload ;
+	std::string					_upload_path ;
 public:
 	Location( void ) ;
 	Location( const Location& rhs ) ;
@@ -33,6 +35,8 @@ public:
 	const redirection_t&		getReturn( void ) const ;
 	const std::string&			getRoot( void ) const ;
 	const bool&					getCgi( void ) const ;
+	const bool&					getUpload( void ) const ;
+	const std::string&			getUploadPath( void ) const ;
 
 	// Setters
 	void 						setAutoIndex( const std::string& _autoIndex ) ;
@@ -41,6 +45,8 @@ public:
 	void 						setReturn( const std::string& statusCode, const std::string& _return ) ;
 	void 						setRoot( const std::string& _root ) ;
 	void 						setCgi( const std::string& state ) ;
+	void 						setUpload( const std::string& state ) ;
+	void 						setUploadPath( const std::string& path ) ;
 
 } ;
 

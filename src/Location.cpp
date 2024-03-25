@@ -1,6 +1,6 @@
 #include "../includes/Location.hpp"
 
-Location::Location( void ) : _autoIndex(false), _index(), _allowedMethods(), _return(), _root(""), _cgi(false)
+Location::Location( void ) : _autoIndex(false), _index(), _allowedMethods(), _return(), _root("/var/www"), _cgi(false), _upload(false), _upload_path("/var/upload")
 {
 }
 
@@ -12,6 +12,8 @@ Location::Location( const Location& rhs )
     this->_return = rhs._return ;
     this->_root = rhs._root ;
     this->_cgi = rhs._cgi ;
+    this->_upload = rhs._upload ;
+    this->_upload_path = rhs._upload_path ;
 }
 
 Location& Location::operator=( const Location& rhs )
@@ -22,6 +24,8 @@ Location& Location::operator=( const Location& rhs )
     this->_return = rhs._return ;
     this->_root = rhs._root ;
     this->_cgi = rhs._cgi ;
+    this->_upload = rhs._upload ;
+    this->_upload_path = rhs._upload_path ;
 
     return (*this) ;
 }
@@ -60,6 +64,16 @@ const std::string&				Location::getRoot( void ) const
 const bool&                   Location::getCgi( void ) const
 {
     return (_cgi ) ;
+}
+
+const bool&                    Location::getUpload( void ) const
+{
+    return (_upload) ;
+}
+
+const std::string&               Location::getUploadPath( void ) const
+{
+    return (_upload_path) ;
 }
 
 void 						Location::setAutoIndex( const std::string& _autoIndex )
@@ -110,6 +124,21 @@ void 						Location::setCgi( const std::string& state )
         throw std::runtime_error("Unexpected value for cgi: " + state) ;
 }
 
+void 						Location::setUpload( const std::string& state )
+{
+    if (state == "on")
+        this->_upload = true ;
+    else if (state == "off")
+        this->_upload = false ;
+    else
+        throw std::runtime_error("Unexpected value for upload: " + state) ;
+}
+
+void 						Location::setUploadPath( const std::string& path )
+{
+    this->_upload_path = path ;
+}
+
 static const std::string getMethod( Location::Method_t method )
 {
     if (method == Location::GET)
@@ -154,6 +183,9 @@ std::ostream& operator<<( std::ostream& os, const Location& location )
     os << "\t\tReturn: " << redir.first << " " << redir.second << std::endl ;
     os << "\t\tRoot: " << location.getRoot() << std::endl ;
     os << "\t\tcgi: " << (location.getCgi() ? "on" : "off") << std::endl ;
+
+    os << "\t\tUpload: " << (location.getUpload() ? "on" : "off") << std::endl ;
+    os << "\t\tUpload Path: " << location.getUploadPath() << std::endl ;
 
     return (os) ;
 }
