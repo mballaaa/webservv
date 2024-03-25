@@ -39,6 +39,55 @@ Http_req::Http_req(std ::string req, int byterec, Multiplex::listeners_t listner
     parse_re(req, byterec);
    
 }
+
+// copyy
+Http_req& Http_req::operator=(const Http_req &obj)
+{
+    if (this != &obj) {
+        
+        req = obj.req;
+        _target = obj._target;
+        method = obj.method;
+        path = obj.path;
+        http_ver = obj.http_ver;
+        header = obj.header;
+        server = obj.server;
+        _loca = obj._loca;
+        byterec = obj.byterec;
+    }
+    return *this;
+}
+/*  Getter   */
+const std::string& Http_req::getTarget() const {
+    return _target;
+}
+const std::string& Http_req::getBody() const {
+    return body;
+}
+
+const std::string& Http_req::getMethod() const {
+    return method;
+}
+
+const std::string& Http_req::getPath() const {
+    return path;
+}
+
+const std::string& Http_req::getHttpVersion() const {
+    return http_ver;
+}
+
+const std::map<std::string, std::string>& Http_req::getHeader() const {
+    return header;
+}
+
+const Server& Http_req::getServer() const {
+    return server;
+}
+
+const Location& Http_req::getLocation() const {
+    return _loca;
+}
 /*
     structure of request
         ===> start line
@@ -98,7 +147,10 @@ std ::string SetRootLoc(std ::string path,std ::string loac_value,std ::string r
     if(it != std ::string::npos )
     {
         
-       
+        if (path[path.size() - 1] != '/')
+{
+    path += "/";
+}
        
         path.replace(it,loac_value.length(),root+loac_value);
         return path;
@@ -245,7 +297,7 @@ int Http_req::StautRe(std::string request)
         perror("Error : RequstHeader ==>Finding end of request ");
         return (0);
     }
-    std ::string body=request.substr(len_req+4);
+    body=request.substr(len_req+4);
     //std :: cout << "this body ==>"  <<body << std ::endl;
    
 
@@ -339,11 +391,19 @@ int is_file_dir(std::string uri)
 
 void Http_req ::CheckLoc()
 {
+
+
     if(this->_loca.getIndex().size()!=0)
     {
+        
         std ::vector<std ::string> index=this->_loca.getIndex();
         //check if index file are exit 
-        
+        /// ==> get first index string
+        std ::string main_index=index.at(0);
+        std :: cout << "index  name==>" << main_index << std :: endl;
+        _target+=main_index;
+        std :: cout << _target << std ::endl;
+
         
     }
     
@@ -357,7 +417,7 @@ void Http_req:: LetGet()
    // std :: cout << "output" << check_type << std ::endl;
     if(check_type == IS_DIR)
     {
-        
+        std :: cout << "hEYY\n";
        CheckLoc();
     }
    

@@ -28,13 +28,17 @@ private:
     std ::string method;
     std::string path;
     std ::string http_ver;
+    std ::string body;
 
    std::map<std::string, std::string> header; 
     Server server;
     Location _loca;
     int byterec;
 
+
 public:
+    Http_req();
+    Http_req& operator=(const Http_req &obj);
     void debugFunction();
     Http_req(std::string req,int byterec, Multiplex::listeners_t listenrs);
    void parse_re(std ::string bufer,int bytee);
@@ -43,6 +47,17 @@ public:
     void LetGet();
     void CheckLoc();
     ~Http_req();
+
+
+    /*  Getter*/
+  const std::string& getTarget() const;
+  const std::string& getBody() const;
+    const std::string& getMethod() const;
+    const std::string& getPath() const;
+    const std::string& getHttpVersion() const;
+    const std::map<std::string, std::string>& getHeader() const;
+    const Server& getServer() const;
+    const Location& getLocation() const;
 };
 
 #endif
