@@ -9,7 +9,7 @@ Server::Server( const Server& rhs )
     serverNames_t::const_iterator itS = rhs._serverNames.begin() ;
     while (itS != rhs._serverNames.end())
         this->_serverNames.push_back(*itS++) ;
-    
+
     this->_port = rhs._port ;
     this->_host = rhs._host ;
     this->_root = rhs._root ;
@@ -27,7 +27,7 @@ Server::Server( const Server& rhs )
 
 Server& Server::operator=( const Server& rhs )
 {
-    
+
     serverNames_t::const_iterator itS = rhs._serverNames.begin() ;
     this->_serverNames.clear() ;
     while (itS != rhs._serverNames.end())
@@ -180,7 +180,7 @@ std::ostream& operator<<( std::ostream& os, const Server& server )
         os << *itS << " " ;
         itS++ ;
     }
-    std::cout << std::endl ;
+    std::cerr << std::endl ;
 
     std::vector<std::string>::const_iterator inx = server.getIndex().begin() ;
     os << "\t\tIndex: " ;
@@ -189,7 +189,7 @@ std::ostream& operator<<( std::ostream& os, const Server& server )
         os << *inx++ ;
         if (inx != server.getIndex().end())
             os << ", " ;
-        
+
     }
     os << "Port: " << server.getPort() << std::endl ;
     os << "Root: " << server.getRoot() << std::endl ;

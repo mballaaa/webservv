@@ -34,3 +34,6 @@ webserv
 
 # VSCode
 .vscode
+.clang-format
+.clang-tidy
+.editorconfig

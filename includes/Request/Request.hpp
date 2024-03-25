@@ -3,6 +3,7 @@
 
 #include <netdb.h>
 #include "../Server.hpp"
+#include "Http_req.hpp"
 
 class Request
 {
@@ -15,10 +16,10 @@ private:
 	Request( void ) ;
 
 public:
-    std::string request ;
+	Http_req http_req;
 	Request( const int& socketfd, const Server& owner, const struct sockaddr& in_addr ) ;
 	Request( const Request& rhs ) ;
-	
+
 
 	~Request( void ) ;
 

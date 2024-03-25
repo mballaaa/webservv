@@ -22,7 +22,7 @@ void Multiplex::setup( const servers_t& servers )
     {
         SOCKET sfd ;
         std::string id = servIt->getHost() + ":" + servIt->getPort() ;
-        std::cout << "Listening on: " << id << "..." << std::endl ;
+        std::cerr << "Listening on: " << id << "..." << std::endl ;
         if (hostPortMap.find(id) != hostPortMap.end()) // host:port already binded
             sfd = hostPortMap[id] ;
         else // create new socket, bind, listen and add to epoll finally add it to hostPortMap
@@ -48,36 +48,36 @@ void Multiplex::start( void )
     eventName[EPOLLOUT] = "EPOLLOUT" ;
     eventName[EPOLLERR] = "EPOLLERR" ;
     eventName[EPOLLHUP] = "EPOLLHUP" ;
-  
+
     /* The event loop */
     while (1)
     {
         int eventCount ; // Number of events epoll_wait returned
         /// i add this to get some data from config file like clientMaxSize
-      
+
         eventCount = epoll_wait (epollFD, events, SOMAXCONN, -1); // Waiting for new event to occur
-        std::cout << eventCount << " events ready" << std::endl ;
+        std::cerr << eventCount << " events ready" << std::endl ;
         for (int i = 0; i < eventCount; i++)
         {
-            std::cout << "descriptor " << events[i].data.fd << " " ;
+            std::cerr << "descriptor " << events[i].data.fd << " " ;
             if (events[i].events & EPOLLOUT)
-                std::cout << eventName[EPOLLOUT] ;
+                std::cerr << eventName[EPOLLOUT] ;
             if (events[i].events & EPOLLIN)
-                std::cout << eventName[EPOLLIN] ;
+                std::cerr << eventName[EPOLLIN] ;
             if (events[i].events & EPOLLET)
-                std::cout << eventName[EPOLLET] ;
+                std::cerr << eventName[EPOLLET] ;
             if (events[i].events & EPOLLERR)
-                std::cout << eventName[EPOLLERR] ;
+                std::cerr << eventName[EPOLLERR] ;
             if (events[i].events & EPOLLHUP)
-                std::cout << eventName[EPOLLHUP] ;
-            std::cout << std::endl ;
+                std::cerr << eventName[EPOLLHUP] ;
+            std::cerr << std::endl ;
 
             if ((events[i].events & EPOLLERR) ||
                 (events[i].events & EPOLLHUP))
             {
                 /* An error has occured on this fd, or the socket is not
                     ready for reading (why were we notified then?) */
-                fprintf (stderr, "epoll error\n");
+                // fprintf (stderr, "epoll error\n");
                 close (events[i].data.fd);
                 perror("EPOLLERR | EPOLLHUP") ;
                 continue;
@@ -108,22 +108,23 @@ void Multiplex::start( void )
                         continue ;
                     }
                 }
-                
+
                 s = getnameinfo (&in_addr, in_len,
                                 hbuf, sizeof hbuf,
                                 sbuf, sizeof sbuf,
                                 NI_NUMERICHOST | NI_NUMERICSERV);
                 if (s == 0)
                 {
-                    printf("Accepted connection on descriptor %d "
-                            "(host=%s, port=%s)\n", infd, hbuf, sbuf);
+                    // printf("Accepted connection on descriptor %d "
+                    //         "(host=%s, port=%s)\n", infd, hbuf, sbuf);
                 }
 
                 /**
-                 * Make the incoming socket non-blocking and add it to the list of fds to monitor. 
+                 * Make the incoming socket non-blocking and add it to the list of fds to monitor.
                 */
                 SocketManager::makeSocketNonBlocking(infd);
                 SocketManager::epollCtlSocket(infd, EPOLL_CTL_ADD) ;
+                // mballa: create and add request object after accepting new client
                 requests.insert(std::make_pair(infd, Request(infd, listeners[events[i].data.fd], in_addr))) ;
                 continue;
             }
@@ -139,12 +140,13 @@ void Multiplex::start( void )
                 if (bytesReceived == -1)
                 {
                     perror ("read");
-                    printf ("Closed connection on descriptor %d\n",
-                    events[i].data.fd);
+                    // printf ("Closed connection on descriptor %d\n",
+                    // events[i].data.fd);
 
                     /* Closing the descriptor will make epoll remove it
                         from the set of descriptors which are monitored. */
                     close (events[i].data.fd);
+                    // mballa:remove request from map after closing connection
                     requests.erase(events[i].data.fd) ;
                     continue ;
                 }
@@ -152,43 +154,61 @@ void Multiplex::start( void )
                 {
                     /* End of file. The remote has closed the
                         connection. */
-                    printf ("Closed connection on descriptor %d by client\n",
-                    events[i].data.fd);
+                    // printf ("Closed connection on descriptor %d by client\n",
+                    // events[i].data.fd);
 
                     /* Closing the descriptor will make epoll remove it
                         from the set of descriptors which are monitored. */
                     close (events[i].data.fd);
+                    // mballa: remove request from map after closing connection
                     requests.erase(events[i].data.fd) ;
                     continue ;
                 }
-                requests.find(events[i].data.fd)->second.request += buf ;
-               
+
                 /* Write the buffer to standard output */
-                std::cout << FOREGRN ;
-                std::cout << "============== Request ==============" << std::endl ;
-                std::cout << "==============+++++++++==============" << std::endl ;
+                std::cerr << FOREGRN ;
+                std::cerr << "============== Request ==============" << std::endl ;
+                std::cerr << "==============+++++++++==============" << std::endl ;
              //  s = write (1, buf, bytesReceived);
-                // get 
+                // get
                 //  start parse
 
-                Http_req htt(buf,bytesReceived,listeners);
-                std::cout << "==============+++++++++==============" << std::endl ;
-                std::cout << "==============+++++++++==============" << std::endl ;
+                // here you have to parse the headers
+                // for the body you have to consider the content length or chunked encoding
+                // also remember you cant store the hole body in a variable so you have to store it in a file
+                Request& currRequest = requests.find(events[i].data.fd)->second ;
+                currRequest.http_req.req = std::string(buf) ;
+                currRequest.http_req.byterec = bytesReceived ;
+                currRequest.http_req.server = currRequest.getServer() ;
+                currRequest.http_req.parse_re(std::string(buf),bytesReceived) ;
+                if (currRequest.http_req.state == Http_req::HEADER)
+                {
+                    s = write (1, currRequest.http_req.body.c_str(), strlen(currRequest.http_req.body.c_str())) ;
+                    currRequest.http_req.state = Http_req::BODY ;
 
-                std::cout << RESETTEXT ;
+                }
+                else if (currRequest.http_req.state == Http_req::BODY)
+                {
+                    s = write (1, buf, bytesReceived) ;
+                }
+
+                // Http_req htt(buf,bytesReceived,listeners);
+                std::cerr << "==============+++++++++==============" << std::endl ;
+                std::cerr << "==============+++++++++==============" << std::endl ;
+
+                std::cerr << RESETTEXT ;
                 if (s == -1)
                 {
                     perror ("write");
                     throw std::runtime_error("Could not write in ") ;
                 }
-                
+
                 /**
                  * Set connection socket to EPOLLOUT to write reponse in the next iteration
                  * don't forget that if you didnt set the connection to EPOLLOUT the program
                  * wont send your response and keep waiting for EPOLLIN
                 */
-                if (requests.find(events[i].data.fd)->second.request.find("\r\n\r\n") != std::string::npos)
-                    SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLOUT) ;
+                SocketManager::epollCtlSocket(events[i].data.fd, EPOLL_CTL_MOD, EPOLLOUT) ;
             }
             else if (events[i].events & EPOLLOUT) // check if we have EPOLLOUT (connection socket ready to write)
             {
@@ -201,31 +221,30 @@ void Multiplex::start( void )
                 s = write (events[i].data.fd, response.c_str(), response.size());
                 if (s == -1)
                     throw std::runtime_error("Cant write response") ;
-                // std::cout << FOREBLU ;
-                // std::cout << "============== Response ==============" << std::endl ;
-             //    std::cout << "==============++++++++++==============" << std::endl ;
+                // std::cerr << FOREBLU ;
+                // std::cerr << "============== Response ==============" << std::endl ;
+             //    std::cerr << "==============++++++++++==============" << std::endl ;
               //   write (1, response.c_str(), response.size());
-                // std::cout << "==============+++++++++==============" << std::endl ;
-                // std::cout << "==============+++++++++==============" << std::endl ;
-                // std::cout << RESETTEXT ;
+                // std::cerr << "==============+++++++++==============" << std::endl ;
+                // std::cerr << "==============+++++++++==============" << std::endl ;
+                // std::cerr << RESETTEXT ;
                 /**
                  * Incas the client request Connection: close we close the connection
                  * else the connection remains open and waiting for another rquest from the client
                 */
-                if (requests.find(events[i].data.fd)->second.request.find("Connection: close") != std::string::npos)
-                {
-                    printf ("Closed connection on descriptor %d\n",
-                            events[i].data.fd);
-                    /* Closing the descriptor will make epoll remove it
-                        from the set of descriptors which are monitored. */
-                    close (events[i].data.fd);
-                    // requests.erase(events[i].data.fd) ;
-                }
+                // if (requests.find(events[i].data.fd)->second.request.find("Connection: close") != std::string::npos)
+                // {
+                //     printf ("Closed connection on descriptor %d\n",
+                //             events[i].data.fd);
+                //     /* Closing the descriptor will make epoll remove it
+                //         from the set of descriptors which are monitored. */
+                //     close (events[i].data.fd);
+                //     // requests.erase(events[i].data.fd) ;
+                // }
                 /**
                  * clear request buffer after processing it and sending request
                 */
-                requests.find(events[i].data.fd)->second.request.clear() ;
-                std::cout << "Response Sent" << std::endl ;
+                std::cerr << "Response Sent" << std::endl ;
             }
         }
     }

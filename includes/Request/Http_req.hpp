@@ -6,31 +6,33 @@
 #include <cstdio>
 #include <sstream>
 #include <algorithm>
-#include "../../includes/Multiplex.hpp"
 #include "dirent.h"
 #define IS_DIR   0
 #define IS_FILE 1
 #define IS_RED 2
+
 class Http_req
 {
 public:
     struct golbal_info
     {
-        
-    };
-    
 
-private:
-   /// this the start line 
+    };
+
+
+public: // amine: i made this public for now
+   /// this the start line
     std::string req;
     std::string _target;
-    
+    typedef enum { START, HEADER, BODY, DONE, WAITCLOSE } State_t;
+
+    State_t state;
     std ::string method;
     std::string path;
     std ::string http_ver;
     std ::string body;
 
-   std::map<std::string, std::string> header; 
+   std::map<std::string, std::string> header;
     Server server;
     Location _loca;
     int byterec;
@@ -40,7 +42,7 @@ public:
     Http_req();
     Http_req& operator=(const Http_req &obj);
     void debugFunction();
-    Http_req(std::string req,int byterec, Multiplex::listeners_t listenrs);
+    Http_req(std::string req,int byterec, std::map<int, Server> listenrs);
    void parse_re(std ::string bufer,int bytee);
    int StautRe(std ::string request);
     int MoreValidation();

@@ -1,10 +1,14 @@
 #include "../../includes/Request/Http_req.hpp"
 #include <unistd.h>
 
-Http_req::Http_req(std ::string req, int byterec, Multiplex::listeners_t listners)
+Http_req::Http_req() {
+    state = START;
+}
+
+Http_req::Http_req(std ::string req, int byterec, std::map<int, Server> listners)
 {
-    
-    // std :: cout << s.getClientMaxBodySize();
+
+    // std :: cerr << s.getClientMaxBodySize();
 
     //  std::map<SOCKET,Server> ::iterator it;
 
@@ -12,39 +16,39 @@ Http_req::Http_req(std ::string req, int byterec, Multiplex::listeners_t listner
 
     // {
 
-    //     std ::cout << "********* here***********\n";
-    //     std :: cout << it->second.getClientMaxBodySize() << std ::endl;
-    //     std ::cout << "********* here***********\n";
-    std::map<SOCKET, Server>::iterator it;
-    
+    //     std ::cerr << "********* here***********\n";
+    //     std :: cerr << it->second.getClientMaxBodySize() << std ::endl;
+    //     std ::cerr << "********* here***********\n";
+    std::map<int, Server>::iterator it;
+
     it = listners.begin();
-    
+
     this->req = req;
     this->byterec = byterec;
     this->server = it->second;
-   // std :: cout << "====>root"  << server.getRoot() << std ::endl;
-   /// See location 
+   // std :: cerr << "====>root"  << server.getRoot() << std ::endl;
+   /// See location
 
-//    std :: cout << "Yessss\n";
+//    std :: cerr << "Yessss\n";
 //    std::map<std::string ,Location> getLocation=server.getLocations();
-//         std ::cout << "==>\n" ;
+//         std ::cerr << "==>\n" ;
 //    std::map<std::string, Location>::iterator it_loc;
 //     for (it_loc = getLocation.begin(); it_loc != getLocation.end(); ++it_loc) {
-//     std :: cout << it_loc->first << std ::endl;
+//     std :: cerr << it_loc->first << std ::endl;
 // }
     // for(it_loc = getLocation.begin();it_loc !=getLocation.end();++it_loc)
     // {
-    //     std :: cout << " =>" << it_loc->first << std ::endl;     
+    //     std :: cerr << " =>" << it_loc->first << std ::endl;
     // }
-    parse_re(req, byterec);
-   
+    // parse_re(req, byterec); // amine: I commented this line
+
 }
 
 // copyy
 Http_req& Http_req::operator=(const Http_req &obj)
 {
     if (this != &obj) {
-        
+
         req = obj.req;
         _target = obj._target;
         method = obj.method;
@@ -101,16 +105,16 @@ bool is_same(std::string key,std::string target)
 {
     //key is valuee from config location
     // //target ==is path request
-    // std :: cout << " key from conf===> " << key << std ::endl;
-    // std :: cout << "path==>"  << target << std :: endl;
+    // std :: cerr << " key from conf===> " << key << std ::endl;
+    // std :: cerr << "path==>"  << target << std :: endl;
     if(target.length() < key.length())
     {
-     //   std :: cout << "JJJJ\n";
-        
+     //   std :: cerr << "JJJJ\n";
+
         return false;
     }
     int value = target.compare(0,key.length(),key);
- 
+
    return (value==0);
 
 }
@@ -139,19 +143,19 @@ std::string to_stringmetohd(int value) {
 std ::string SetRootLoc(std ::string path,std ::string loac_value,std ::string root)
 {
     std ::string result;
-    std :: cout << "==> path:" << path << std ::endl;
-	std :: cout << "==>locationpath:" << loac_value << std ::endl;
-	std :: cout << "==>root:" << root << std ::endl;
+    std :: cerr << "==> path:" << path << std ::endl;
+	std :: cerr << "==>locationpath:" << loac_value << std ::endl;
+	std :: cerr << "==>root:" << root << std ::endl;
     size_t it =path.find(loac_value);
-    
+
     if(it != std ::string::npos )
     {
-        
+
         if (path[path.size() - 1] != '/')
 {
     path += "/";
 }
-       
+
         path.replace(it,loac_value.length(),root+loac_value);
         return path;
     }
@@ -167,7 +171,7 @@ int Http_req::MoreValidation()
         return 0;
     }
     /// check method
-   
+
 
     if (method != "GET" && method != "POST" && method != "DELETE")
     {
@@ -192,16 +196,16 @@ int Http_req::MoreValidation()
         std::cerr << "Error: Invalid content-length in request." << std::endl;
         return 0;
     }
-    
+
     if( maxx_size < content_len)
                 return (0);
-    
+
     }
     if(header.find("transfer-encoding")!=header.end() && header["transfer-encoding"]!="chunked")
-        return (0); 
+        return (0);
     if(method=="POST"  && header.find("content-length")==header.end() && header.find("transfer-encoding")==header.end())
         return (0);
-    
+
     this->_target=this->path;
     // now let check if match or not
     std::map<std ::string,Location> location=this->server.getLocations();
@@ -210,71 +214,71 @@ int Http_req::MoreValidation()
     std ::string key ;
     for ( it =location.begin() ; it != location.end(); it++)
     {
-      
+
          key =it->first;
-         
+
          if(is_same(key,_target))
          {
-           // std :: cout << "is same\n" << std ::endl;
+           // std :: cerr << "is same\n" << std ::endl;
              flag++;
              this->_loca=it->second;
-              break;        
+              break;
         }
 
     }
-    
-    if(flag==0)
-    {   
-        std :: cout << "Not Match \n"; 
-        // if not found any match
-      return (0); /// No match akhouuya 
-    }
-        
 
-    
-    ///std :: cout << "weech\n";
+    if(flag==0)
+    {
+        std :: cerr << "Not Match \n";
+        // if not found any match
+      return (0); /// No match akhouuya
+    }
+
+
+
+    ///std :: cerr << "weech\n";
      Location::redirection_t  red=this->_loca.getReturn();
-    //  std :: cout << red.first << std ::endl;
-    //  std :: cout << red.second << std ::endl;
+    //  std :: cerr << red.first << std ::endl;
+    //  std :: cerr << red.second << std ::endl;
     if(red.first !=0 && red.second != "")
     {
         this->_target=red.second;
         return 0;
-        //std :: cout << "tis the path\n" << path << std ::endl;
+        //std :: cerr << "tis the path\n" << path << std ::endl;
     }
-    // let check allow methode 
+    // let check allow methode
     Location::Methods_t allowmethod=this->_loca.getAllowedMethods();
     bool is_exit=false;
     (void) is_exit;
-    
+
    for(size_t i =0 ; i < allowmethod.size();i++)
    {
         // change to stirng
         std ::string get_methode=to_stringmetohd(allowmethod[i]);
-      //  std :: cout << "get methode==>\n" << get_methode << std ::endl;
+      //  std :: cerr << "get methode==>\n" << get_methode << std ::endl;
         if(get_methode==this->method)
         {
-            
+
             is_exit=true;
             break;
         }
-    
-        
+
+
    }
     /// TO DO SHLOUD DO SOMETHING IF ALLOW MEHODE FALSE
-   
-       
+
+
     _target=SetRootLoc(_target,key,this->server.getRoot());
-    std :: cout <<"last =>" <<  _target << std :: endl;
+    std :: cerr <<"last =>" <<  _target << std :: endl;
 
     return (1);
 }
 void Http_req::debugFunction()
 {
-    std ::cout << "our infoo\n";
-    std ::cout << "type mthode=>" << this->method << std ::endl;
-    std ::cout << "path=>" << this->path << std ::endl;
-    std ::cout << "vers=>" << this->http_ver << std ::endl;
+    std ::cerr << "our infoo\n";
+    std ::cerr << "type mthode=>" << this->method << std ::endl;
+    std ::cerr << "path=>" << this->path << std ::endl;
+    std ::cerr << "vers=>" << this->http_ver << std ::endl;
 
     ///// print headar
     std::map<std::string, std::string>::iterator it;
@@ -282,9 +286,9 @@ void Http_req::debugFunction()
     {
         if (it->first == "Content-Length")
         {
-            std ::cout << "ssssss\n";
+            std ::cerr << "ssssss\n";
         }
-        //std ::cout << it->first << ":" << it->second << std ::endl;
+        //std ::cerr << it->first << ":" << it->second << std ::endl;
     }
 }
 int Http_req::StautRe(std::string request)
@@ -294,12 +298,14 @@ int Http_req::StautRe(std::string request)
     size_t len_req = request.find("\r\n\r\n");
     if (len_req == std::string::npos)
     {
-        perror("Error : RequstHeader ==>Finding end of request ");
+        // perror("Error : RequstHeader ==>Finding end of request ");
+        if (state == START)
+            state = HEADER ;
         return (0);
     }
     body=request.substr(len_req+4);
-    //std :: cout << "this body ==>"  <<body << std ::endl;
-   
+    //std :: cerr << "this body ==>"  <<body << std ::endl;
+
 
     std::istringstream input(request);
     input >> this->method >> this->path >> this->http_ver;
@@ -328,16 +334,16 @@ int Http_req::StautRe(std::string request)
                 return (0);
             }
             header[key] = value;
-        
+
             /// debug function
         }
-      //  std :: cout << "===>" << next_line << std ::endl;
+      //  std :: cerr << "===>" << next_line << std ::endl;
     }
-  
+
     //======> check path
     if (MoreValidation())
     {
-         
+
     }
       //debugFunction();
 
@@ -350,27 +356,27 @@ void Http_req::parse_re(std ::string bufer, int bytee)
     (void)bytee;
     if (!StautRe(bufer) || bytee < 0)
     {
-            
+
     }
     else
     {
         if(method=="GET")
-        {   
+        {
             LetGet();
         }
-        
+
     }
 }
 
 bool Is_dir(const char *ptr)
 {
-    std :: cout << "ptr==>" << ptr << std ::endl;
+    std :: cerr << "ptr==>" << ptr << std ::endl;
    if(!access(ptr,X_OK |R_OK))
    {
     DIR *dir= opendir(ptr);
     if(dir !=NULL)
     {
-        std :: cout << "Is directory\n";
+        std :: cerr << "Is directory\n";
         return true;
     }
     return false;
@@ -379,7 +385,7 @@ bool Is_dir(const char *ptr)
    {
     return false;
    }
-    
+
 
 }
 int is_file_dir(std::string uri)
@@ -395,32 +401,32 @@ void Http_req ::CheckLoc()
 
     if(this->_loca.getIndex().size()!=0)
     {
-        
+
         std ::vector<std ::string> index=this->_loca.getIndex();
-        //check if index file are exit 
+        //check if index file are exit
         /// ==> get first index string
         std ::string main_index=index.at(0);
-        std :: cout << "index  name==>" << main_index << std :: endl;
+        std :: cerr << "index  name==>" << main_index << std :: endl;
         _target+=main_index;
-        std :: cout << _target << std ::endl;
+        std :: cerr << _target << std ::endl;
 
-        
+
     }
-    
-    
+
+
 }
 // =====> Let Start Get
 void Http_req:: LetGet()
 {
     std ::string URI=this->_target;
     int check_type=is_file_dir(URI);
-   // std :: cout << "output" << check_type << std ::endl;
+   // std :: cerr << "output" << check_type << std ::endl;
     if(check_type == IS_DIR)
     {
-        std :: cout << "hEYY\n";
+        std :: cerr << "hEYY\n";
        CheckLoc();
     }
-   
+
 }
 Http_req::~Http_req()
 {
