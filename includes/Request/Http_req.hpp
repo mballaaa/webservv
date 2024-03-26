@@ -39,10 +39,12 @@ public: // amine: i made this public for now
 
 
 public:
+
     Http_req();
     Http_req& operator=(const Http_req &obj);
     void debugFunction();
-    Http_req(std::string req,int byterec, std::map<int, Server> listenrs);
+    Http_req(Server server);
+    //Http_req(std::string req,int byterec, std::map<int, Server> listenrs);
    void parse_re(std ::string bufer,int bytee);
    int StautRe(std ::string request);
     int MoreValidation();
@@ -52,8 +54,8 @@ public:
 
 
     /*  Getter*/
-  const std::string& getTarget() const;
-  const std::string& getBody() const;
+    const std::string& getTarget() const;
+    const std::string& getBody() const;
     const std::string& getMethod() const;
     const std::string& getPath() const;
     const std::string& getHttpVersion() const;

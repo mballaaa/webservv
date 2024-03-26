@@ -125,10 +125,11 @@ void Multiplex::start( void )
                 SocketManager::makeSocketNonBlocking(infd);
                 SocketManager::epollCtlSocket(infd, EPOLL_CTL_ADD) ;
                 // mballa: create and add request object after accepting new client
-                requests.insert(std::make_pair(infd, Request(infd, listeners[events[i].data.fd], in_addr))) ;
+                //Http_req my_obg;
+                requests.insert(std::make_pair(infd, Http_req(listeners[events[i].data.fd])));
                 continue;
             }
-            else if (events[i].events & EPOLLIN) // check if we have EPOLLIN (connection socket ready to read)
+            else if (events[i].events & EPOLLIN ) // check if we have EPOLLIN (connection socket ready to read)
             {
                 /**
                  * We have a notification on the connection socket meaning there is more data to be read
@@ -176,23 +177,26 @@ void Multiplex::start( void )
                 // here you have to parse the headers
                 // for the body you have to consider the content length or chunked encoding
                 // also remember you cant store the hole body in a variable so you have to store it in a file
-                Request& currRequest = requests.find(events[i].data.fd)->second ;
-                currRequest.http_req.req = std::string(buf) ;
-                currRequest.http_req.byterec = bytesReceived ;
-                currRequest.http_req.server = currRequest.getServer() ;
-                currRequest.http_req.parse_re(std::string(buf),bytesReceived) ;
-                if (currRequest.http_req.state == Http_req::HEADER)
-                {
-                    s = write (1, currRequest.http_req.body.c_str(), strlen(currRequest.http_req.body.c_str())) ;
-                    currRequest.http_req.state = Http_req::BODY ;
+                // 
+                // currRequest.http_req.req = std::string(buf) ;
+                // currRequest.http_req.byterec = bytesReceived ;
+                // currRequest.http_req.server = currRequest.getServer() ;
+                // currRequest.http_req.parse_re(std::string(buf),bytesReceived) ;
+                // if (currRequest.http_req.state == Http_req::HEADER)
+                // {
+                //     s = write (1, currRequest.http_req.body.c_str(), strlen(currRequest.http_req.body.c_str())) ;
+                //     currRequest.http_req.state = Http_req::BODY ;
 
-                }
-                else if (currRequest.http_req.state == Http_req::BODY)
-                {
-                    s = write (1, buf, bytesReceived) ;
-                }
+                // }
+                // else if (currRequest.http_req.state == Http_req::BODY)
+                // {
+                //     s = write (1, buf, bytesReceived) ;
+                // }
 
                 // Http_req htt(buf,bytesReceived,listeners);
+                // call some function
+                Http_req currRequest = requests.find(events[i].data.fd)->second ;
+                    currRequest.parse_re(buf,bytesReceived);
                 std::cerr << "==============+++++++++==============" << std::endl ;
                 std::cerr << "==============+++++++++==============" << std::endl ;
 

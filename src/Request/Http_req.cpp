@@ -1,48 +1,50 @@
 #include "../../includes/Request/Http_req.hpp"
 #include <unistd.h>
 
-Http_req::Http_req() {
+Http_req::Http_req(Server server) {
+
+(void) server;
     state = START;
 }
 
-Http_req::Http_req(std ::string req, int byterec, std::map<int, Server> listners)
-{
+// Http_req::Http_req(std ::string req, int byterec, std::map<int, Server> listners)
+// {
 
-    // std :: cerr << s.getClientMaxBodySize();
+//     // std :: cerr << s.getClientMaxBodySize();
 
-    //  std::map<SOCKET,Server> ::iterator it;
+//     //  std::map<SOCKET,Server> ::iterator it;
 
-    // for (it =listners.begin() ;it !=listners.end();++it)
+//     // for (it =listners.begin() ;it !=listners.end();++it)
 
-    // {
+//     // {
 
-    //     std ::cerr << "********* here***********\n";
-    //     std :: cerr << it->second.getClientMaxBodySize() << std ::endl;
-    //     std ::cerr << "********* here***********\n";
-    std::map<int, Server>::iterator it;
+//     //     std ::cerr << "********* here***********\n";
+//     //     std :: cerr << it->second.getClientMaxBodySize() << std ::endl;
+//     //     std ::cerr << "********* here***********\n";
+//     std::map<int, Server>::iterator it;
 
-    it = listners.begin();
+//     it = listners.begin();
 
-    this->req = req;
-    this->byterec = byterec;
-    this->server = it->second;
-   // std :: cerr << "====>root"  << server.getRoot() << std ::endl;
-   /// See location
+//     this->req = req;
+//     this->byterec = byterec;
+//     this->server = it->second;
+//    // std :: cerr << "====>root"  << server.getRoot() << std ::endl;
+//    /// See location
 
-//    std :: cerr << "Yessss\n";
-//    std::map<std::string ,Location> getLocation=server.getLocations();
-//         std ::cerr << "==>\n" ;
-//    std::map<std::string, Location>::iterator it_loc;
-//     for (it_loc = getLocation.begin(); it_loc != getLocation.end(); ++it_loc) {
-//     std :: cerr << it_loc->first << std ::endl;
+// //    std :: cerr << "Yessss\n";
+// //    std::map<std::string ,Location> getLocation=server.getLocations();
+// //         std ::cerr << "==>\n" ;
+// //    std::map<std::string, Location>::iterator it_loc;
+// //     for (it_loc = getLocation.begin(); it_loc != getLocation.end(); ++it_loc) {
+// //     std :: cerr << it_loc->first << std ::endl;
+// // }
+//     // for(it_loc = getLocation.begin();it_loc !=getLocation.end();++it_loc)
+//     // {
+//     //     std :: cerr << " =>" << it_loc->first << std ::endl;
+//     // }
+//     // parse_re(req, byterec); // amine: I commented this line
+
 // }
-    // for(it_loc = getLocation.begin();it_loc !=getLocation.end();++it_loc)
-    // {
-    //     std :: cerr << " =>" << it_loc->first << std ::endl;
-    // }
-    // parse_re(req, byterec); // amine: I commented this line
-
-}
 
 // copyy
 Http_req& Http_req::operator=(const Http_req &obj)
@@ -123,11 +125,11 @@ int check_path(std ::string path)
 
     if (path.empty())
     {
-        return (0);
+       // return (0);
     }
     if (path.at(0) != '/')
     {
-        return (0);
+        //return (0);
     }
 
     return (1);
@@ -165,48 +167,60 @@ int Http_req::MoreValidation()
 {
 
 
-    if (!check_path(this->path))
-    {
+    // if (!check_path(this->path))
+    // {
 
-        return 0;
-    }
-    /// check method
+    //     return 0;
+    // }
+    // /// check method
 
 
     if (method != "GET" && method != "POST" && method != "DELETE")
     {
+        //std :: cout << "ddddd1\n";
 
-        return (0);
+        //return (0);
     }
     if (http_ver != "HTTP/1.1")
     {
-
-        return (0);
+ std :: cout << "ddddd2\n";
+        //return (0);
     }
 
     // get    max body size  in conf
-    size_t maxx_size = this->server.getClientMaxBodySize();
-    char *endptr;
-     size_t content_len;
-    if(header.find("content-length")!=header.end())
-    {
-     content_len  = strtol(header["content-length"].c_str(), &endptr, 10);
-    if (endptr == header["content-length"].c_str())
-    {
-        std::cerr << "Error: Invalid content-length in request." << std::endl;
-        return 0;
-    }
+    // size_t maxx_size = this->server.getClientMaxBodySize();
+    // char *endptr;
+    //  size_t content_len;
+    // if(header.find("content-length")!=header.end())
+    // {
+    //  content_len  = strtol(header["content-length"].c_str(), &endptr, 10);
+    // if (endptr == header["content-length"].c_str())
+    // {
+    //      std :: cout << "ddddd\n";
+    //     std::cerr << "Error: Invalid content-length in request." << std::endl;
+    //     return 0;
+    // }
+    // (void) content_len;
 
-    if( maxx_size < content_len)
-                return (0);
+    // // if( maxx_size < content_len)
+    // // {
+    // //      std :: cout << "ddddd3\n"; 
+    // //      return (0);
+    // // }
+               
 
-    }
-    if(header.find("transfer-encoding")!=header.end() && header["transfer-encoding"]!="chunked")
-        return (0);
-    if(method=="POST"  && header.find("content-length")==header.end() && header.find("transfer-encoding")==header.end())
-        return (0);
+    // }
+    // if(header.find("transfer-encoding")!=header.end() && header["transfer-encoding"]!="chunked")
+    // {
+    //     std :: cout << "ddddd4\n"; 
+    //       return (0);
+    // }
+      
+    // if(method=="POST"  && header.find("content-length")==header.end() && header.find("transfer-encoding")==header.end())
+    //     return (0);
 
     this->_target=this->path;
+    std :: cout << _target << std ::endl;
     // now let check if match or not
     std::map<std ::string,Location> location=this->server.getLocations();
     std::map<std::string,Location> :: iterator it;
@@ -226,13 +240,14 @@ int Http_req::MoreValidation()
         }
 
     }
-
-    if(flag==0)
-    {
-        std :: cerr << "Not Match \n";
-        // if not found any match
-      return (0); /// No match akhouuya
-    }
+    std :: cout <<  "sssssssssss\n";
+    
+    // if(flag==0)
+    // {
+    //     std :: cerr << "Not Match \n";
+    //     // if not found any match
+    //   return (0); /// No match akhouuya
+    // }
 
 
 
@@ -243,7 +258,7 @@ int Http_req::MoreValidation()
     if(red.first !=0 && red.second != "")
     {
         this->_target=red.second;
-        return 0;
+        //return 0;
         //std :: cerr << "tis the path\n" << path << std ::endl;
     }
     // let check allow methode
@@ -269,7 +284,9 @@ int Http_req::MoreValidation()
 
 
     _target=SetRootLoc(_target,key,this->server.getRoot());
-    std :: cerr <<"last =>" <<  _target << std :: endl;
+
+    std :: cout <<"lastttttttttttttttttt =>" <<  _target << std :: endl;
+
 
     return (1);
 }
@@ -352,6 +369,8 @@ int Http_req::StautRe(std::string request)
 }
 void Http_req::parse_re(std ::string bufer, int bytee)
 {
+    std :: cout  << bufer << std ::endl;
+   
     (void)bufer;
     (void)bytee;
     if (!StautRe(bufer) || bytee < 0)
