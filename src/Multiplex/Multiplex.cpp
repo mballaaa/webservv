@@ -195,8 +195,11 @@ void Multiplex::start( void )
 
                 // Http_req htt(buf,bytesReceived,listeners);
                 // call some function
-                Http_req currRequest = requests.find(events[i].data.fd)->second ;
+              
+                Http_req& currRequest = requests.find(events[i].data.fd)->second ;
                     currRequest.parse_re(buf,bytesReceived);
+               // std :: cout << "HEY\n";
+
                 std::cerr << "==============+++++++++==============" << std::endl ;
                 std::cerr << "==============+++++++++==============" << std::endl ;
 

@@ -31,10 +31,12 @@ public: // amine: i made this public for now
     std::string path;
     std ::string http_ver;
     std ::string body;
+    bool is_finsh;
 
    std::map<std::string, std::string> header;
     Server server;
     Location _loca;
+
     int byterec;
 
 
